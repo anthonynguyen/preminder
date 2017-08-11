@@ -21,15 +21,15 @@ use errors::*;
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 const AUTHORS: &'static str = env!("CARGO_PKG_AUTHORS");
 
-fn run(_path: &str) -> Result<()> {
-    let sets = settings::Settings::new()?;
+fn run(config_path: Option<&str>) -> Result<()> {
+    let sets = settings::Settings::new(config_path)?;
 
     let api = Api::new(
-        sets.github_api_token,
-        sets.github_host
+        sets.github.token,
+        sets.github.host
     )?;
 
-    let repos = api.list_repos(&sets.github_subject)?;
+    let repos = api.list_repos(&sets.github.subject)?;
     println!("Found {} repositories", repos.len());
 
     let prs: Vec<types::PullRequest> = repos.par_iter()
@@ -56,11 +56,10 @@ fn main() {
             .short("c")
             .long("config")
             .takes_value(true)
-            .value_name("FILE")
-            .required(true))
+            .value_name("FILE"))
         .get_matches();
 
-    let config_path = matches.value_of("config").unwrap();
+    let config_path = matches.value_of("config");
 
     if let Err(ref e) = run(config_path) {
         eprintln!("error: {}", e);
