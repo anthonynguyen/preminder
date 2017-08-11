@@ -19,19 +19,26 @@ mod settings;
 mod types;
 
 fn run() -> Result<()> {
-    let set = settings::load()?;
+    let sets = settings::load()?;
     let api = Api::new(
-        set.github_api_token,
-        set.github_host
+        sets.github_api_token,
+        sets.github_host
     )?;
 
-    let repos = api.list_repos(set.github_subject)?;
+    let repos = api.list_repos(&sets.github_subject)?;
     for repo in &repos {
         let desc = match repo.description {
             Some(ref s) => s.to_owned(),
             _ => "NO DESCRIPTION".to_owned()
         };
         println!("{}:\n{}\n", repo.full_name, desc);
+    }
+
+    if let Some(repo) = repos.first() {
+        let prs = api.list_pull_requests(&repo.full_name)?;
+        for pr in &prs {
+            println!("{} ({})\n{}\n", pr.title, pr.state, pr.user.login);
+        }
     }
 
     Ok(())

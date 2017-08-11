@@ -2,6 +2,7 @@ use std::io::Read;
 
 use reqwest;
 use reqwest::header;
+use serde;
 use serde_json;
 
 use errors::*;
@@ -32,8 +33,7 @@ impl Api {
         })
     }
 
-
-    fn get_path(&self, path: &str) -> Result<String> {
+    fn get_raw(&self, path: &str) -> Result<String> {
         let mut res = self.client.get(&format!("{}{}", self.base_url, path))?
             .header(header::Authorization(format!("token {}", self.token)))
             .send()?;
@@ -49,10 +49,21 @@ impl Api {
         Ok(body)
     }
 
-    pub fn list_repos(&self, subject: String) -> Result<Vec<types::Repository>> {
-        let data = self.get_path(&format!("/users/{}/repos", subject))?;
-        let parsed: Vec<types::Repository> = serde_json::from_str(&data)?;
+    fn get<T>(&self, path: &str) -> Result<T>
+        where T: serde::de::DeserializeOwned {
+        let raw = self.get_raw(path)?;
+        let parsed: T = serde_json::from_str(&raw)?;
         Ok(parsed)
+    }
+
+    pub fn list_repos(&self, subject: &str) -> Result<Vec<types::Repository>> {
+        self.get::<Vec<types::Repository>>(&format!("/users/{}/repos", subject))
+            .chain_err(|| format!("Could not retrieve repositories for {}", subject))
+    }
+
+    pub fn list_pull_requests(&self, subject: &str) -> Result<Vec<types::PullRequest>> {
+        self.get::<Vec<types::PullRequest>>(&format!("/repos/{}/pulls", subject))
+            .chain_err(|| format!("Could not retrieve pull requests for {}", subject))
     }
 }
 
