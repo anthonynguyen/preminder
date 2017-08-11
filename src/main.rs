@@ -28,11 +28,14 @@ fn run() -> Result<()> {
     )?;
 
     let repos = api.list_repos(&sets.github_subject)?;
+    println!("Found {} repositories", repos.len());
 
     let prs: Vec<types::PullRequest> = repos.par_iter()
         .flat_map(|repo| api.list_pull_requests(&repo.full_name))
         .flat_map(|ve| ve)
         .collect();
+
+    println!("Found {} pull requests", prs.len());
 
     for pr in &prs {
         println!("[{}] {} ({})\n{}\n", pr.base.repo.full_name, pr.title,

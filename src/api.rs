@@ -30,8 +30,12 @@ impl Api {
         })
     }
 
-    fn get_raw(&self, path: &str) -> Result<reqwest::Response> {
-        let res = self.client.get(&format!("{}{}", self.base_url, path))?
+    fn url(&self, path: &str) -> String {
+        format!("{}{}", self.base_url, path)
+    }
+
+    fn get_raw(&self, url: &str) -> Result<reqwest::Response> {
+        let res = self.client.get(url)?
             .header(header::Authorization(format!("token {}", self.token)))
             .send()?;
 
@@ -43,19 +47,44 @@ impl Api {
         Ok(res)
     }
 
-    fn get<T>(&self, path: &str) -> Result<T>
+    fn get_pages<T>(&self, initial_path: &str) -> Result<Vec<T>>
         where T: serde::de::DeserializeOwned {
-        let mut res = self.get_raw(path)?;
-        res.json::<T>().chain_err(|| "Invalid response from API")
+        let mut res = self.get_raw(&self.url(initial_path))?;
+        let mut list: Vec<T> = Vec::new();
+
+        loop {
+            list.append(&mut res.json::<Vec<T>>()
+                .chain_err(|| format!("Invalid response from API({}): {}",
+                    res.status(), res.url()))?);
+
+            res = {
+                // Look for a Link header with rel=next, and keep following it
+                // There must be a cleaner way to structure this code...
+                let link = res.headers()
+                    .get::<reqwest::header::Link>()
+                    .and_then(|lv| lv.values().iter().find(|lv| {
+                        lv.rel().and_then(|rels| rels.iter().find(|rel| {
+                            **rel == reqwest::header::RelationType::Next
+                        })).is_some()
+                    }));
+
+                match link {
+                    None => break,
+                    Some(lv) => self.get_raw(lv.link())?
+                }
+            }
+        }
+
+        Ok(list)
     }
 
     pub fn list_repos(&self, subject: &str) -> Result<Vec<types::Repository>> {
-        self.get::<Vec<types::Repository>>(&format!("/users/{}/repos", subject))
+        self.get_pages::<types::Repository>(&format!("/users/{}/repos", subject))
             .chain_err(|| format!("Could not retrieve repositories for {}", subject))
     }
 
     pub fn list_pull_requests(&self, subject: &str) -> Result<Vec<types::PullRequest>> {
-        self.get::<Vec<types::PullRequest>>(&format!("/repos/{}/pulls", subject))
+        self.get_pages::<types::PullRequest>(&format!("/repos/{}/pulls", subject))
             .chain_err(|| format!("Could not retrieve pull requests for {}", subject))
     }
 }
