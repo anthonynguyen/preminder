@@ -9,13 +9,15 @@ pub struct Settings {
     pub github_subject: String
 }
 
-pub fn load() -> Result<Settings> {
-	let mut env = config::Environment::new();
-	// Set this to something other than _ and we're good to go
-	env.separator("/".to_owned());
+impl Settings {
+    pub fn new() -> Result<Self> {
+        let mut env = config::Environment::new();
+        // Set this to something other than _ and we're good to go
+        env.separator("/".to_owned());
 
-    let mut settings = config::Config::default();
-    settings.merge(env)?;
+        let mut settings = config::Config::default();
+        settings.merge(env)?;
 
-    Ok(settings.try_into::<Settings>()?)
+        settings.try_into().chain_err(|| "Could not load configuration!")
+    }
 }

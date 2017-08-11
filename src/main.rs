@@ -19,7 +19,7 @@ mod settings;
 mod types;
 
 fn run() -> Result<()> {
-    let sets = settings::load()?;
+    let sets = settings::Settings::new()?;
     let api = Api::new(
         sets.github_api_token,
         sets.github_host
