@@ -26,22 +26,29 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
         .flat_map(|ve| ve)
         .collect();
 
-    let before_prs = prs.len();
-    println!("Found {} pull requests", before_prs);
+    let total_prs = prs.len();
+    println!("Found {} pull requests", total_prs);
 
-    let prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
+    let created_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
         pr.created_at.parse::<chrono::DateTime<chrono::Utc>>()
-            .map(|dt| dt >= earliest)
-            .unwrap_or(false)
+            .map(|dt| dt >= earliest).unwrap_or(false)
     }).collect();
 
-    let after_prs = prs.len();
-    println!("Filtered out {} older pull requests ({} left)",
-        before_prs - after_prs, after_prs);
+    let updated_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
+        pr.updated_at.parse::<chrono::DateTime<chrono::Utc>>()
+            .map(|dt| dt >= earliest).unwrap_or(false)
+    }).collect();
 
-    for pr in &prs {
-        println!("[{}] {} ({})\n{}\n", pr.base.repo.full_name, pr.title,
-            pr.state, pr.user.login);
+    println!("\nFound {} pull requests recently created:", created_prs.len());
+    for pr in &created_prs {
+        println!("[{}] {} -- {}", pr.base.repo.full_name, pr.title,
+            pr.user.login);
+    }
+
+    println!("\nFound {} pull requests recently updated:", updated_prs.len());
+    for pr in &updated_prs {
+        println!("[{}] {} -- {}", pr.base.repo.full_name, pr.title,
+            pr.user.login);
     }
 
     Ok(())
