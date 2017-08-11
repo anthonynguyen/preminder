@@ -11,7 +11,8 @@ pub struct GithubSettings {
 
 #[derive(Debug,Deserialize)]
 pub struct Settings {
-    pub github: GithubSettings
+    pub github: GithubSettings,
+    pub period: String
 }
 
 impl Settings {

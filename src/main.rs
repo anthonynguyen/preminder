@@ -1,3 +1,4 @@
+extern crate chrono;
 extern crate clap;
 extern crate config;
 #[macro_use]
@@ -9,6 +10,7 @@ extern crate serde;
 extern crate serde_derive;
 
 mod api;
+mod duration;
 mod errors;
 mod run;
 mod settings;
