@@ -24,5 +24,15 @@ pub struct PullRequest {
     pub user: User,
     pub created_at: String,
     pub updated_at: String,
-    pub closed_at: Option<String>
+    pub closed_at: Option<String>,
+
+    pub base: Branch
+}
+
+#[derive(Debug,Deserialize)]
+pub struct Branch {
+    pub label: String,
+    pub sha: String,
+    pub user: User,
+    pub repo: Repository
 }
