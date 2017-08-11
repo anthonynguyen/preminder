@@ -1,9 +1,6 @@
-use std::io::Read;
-
 use reqwest;
 use reqwest::header;
 use serde;
-use serde_json;
 
 use errors::*;
 use types;
@@ -33,8 +30,8 @@ impl Api {
         })
     }
 
-    fn get_raw(&self, path: &str) -> Result<String> {
-        let mut res = self.client.get(&format!("{}{}", self.base_url, path))?
+    fn get_raw(&self, path: &str) -> Result<reqwest::Response> {
+        let res = self.client.get(&format!("{}{}", self.base_url, path))?
             .header(header::Authorization(format!("token {}", self.token)))
             .send()?;
 
@@ -43,17 +40,13 @@ impl Api {
             _ => return Err(Error::from(format!("Request failed: {:?}", res))),
         }
 
-        let mut body = String::new();
-        res.read_to_string(&mut body)?;
-
-        Ok(body)
+        Ok(res)
     }
 
     fn get<T>(&self, path: &str) -> Result<T>
         where T: serde::de::DeserializeOwned {
-        let raw = self.get_raw(path)?;
-        let parsed: T = serde_json::from_str(&raw)?;
-        Ok(parsed)
+        let mut res = self.get_raw(path)?;
+        res.json::<T>().chain_err(|| "Invalid response from API")
     }
 
     pub fn list_repos(&self, subject: &str) -> Result<Vec<types::Repository>> {

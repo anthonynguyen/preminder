@@ -6,19 +6,18 @@ extern crate reqwest;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
 
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::process::exit;
 
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+
 mod api;
-use api::Api;
-
 mod errors;
-use errors::*;
-
 mod settings;
 mod types;
+
+use api::Api;
+use errors::*;
 
 fn run() -> Result<()> {
     let sets = settings::Settings::new()?;
@@ -29,6 +28,7 @@ fn run() -> Result<()> {
     )?;
 
     let repos = api.list_repos(&sets.github_subject)?;
+
     let prs: Vec<types::PullRequest> = repos.par_iter()
         .flat_map(|repo| api.list_pull_requests(&repo.full_name))
         .flat_map(|ve| ve)
