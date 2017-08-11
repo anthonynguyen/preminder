@@ -1,3 +1,4 @@
+extern crate clap;
 extern crate config;
 #[macro_use]
 extern crate error_chain;
@@ -6,8 +7,6 @@ extern crate reqwest;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-
-use std::process::exit;
 
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
@@ -19,7 +18,10 @@ mod types;
 use api::Api;
 use errors::*;
 
-fn run() -> Result<()> {
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const AUTHORS: &'static str = env!("CARGO_PKG_AUTHORS");
+
+fn run(_path: &str) -> Result<()> {
     let sets = settings::Settings::new()?;
 
     let api = Api::new(
@@ -46,7 +48,21 @@ fn run() -> Result<()> {
 }
 
 fn main() {
-    if let Err(ref e) = run() {
+    let matches = clap::App::new("preminder")
+        .version(VERSION)
+        .author(AUTHORS)
+        .arg(clap::Arg::with_name("config")
+            .help("Path to config file")
+            .short("c")
+            .long("config")
+            .takes_value(true)
+            .value_name("FILE")
+            .required(true))
+        .get_matches();
+
+    let config_path = matches.value_of("config").unwrap();
+
+    if let Err(ref e) = run(config_path) {
         eprintln!("error: {}", e);
 
         for e in e.iter().skip(1) {
@@ -57,6 +73,6 @@ fn main() {
             eprintln!("backtrace: {:?}", backtrace);
         }
 
-        exit(1);
+        std::process::exit(1);
     }
 }
