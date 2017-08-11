@@ -5,6 +5,7 @@ use reqwest::header;
 use serde_json;
 
 use errors::*;
+use types;
 
 const GITHUB_API_VERSION: &'static str = "api/v3";
 
@@ -48,10 +49,10 @@ impl Api {
         Ok(body)
     }
 
-    pub fn list_repos(&self, subject: String) -> Result<String> {
+    pub fn list_repos(&self, subject: String) -> Result<Vec<types::Repository>> {
         let data = self.get_path(&format!("/users/{}/repos", subject))?;
-
-        Ok(data)
+        let parsed: Vec<types::Repository> = serde_json::from_str(&data)?;
+        Ok(parsed)
     }
 }
 

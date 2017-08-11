@@ -3,5 +3,6 @@ error_chain!{
         Config(::config::ConfigError);
         Io(::std::io::Error);
         Reqwest(::reqwest::Error);
+        SerdeJson(::serde_json::Error);
     }
 }

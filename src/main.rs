@@ -16,18 +16,23 @@ mod errors;
 use errors::*;
 
 mod settings;
+mod types;
 
 fn run() -> Result<()> {
     let set = settings::load()?;
-
-    println!("{:?}", set);
-
     let api = Api::new(
         set.github_api_token,
         set.github_host
     )?;
 
-    println!("{:?}", api.list_repos(set.github_subject)?);
+    let repos = api.list_repos(set.github_subject)?;
+    for repo in &repos {
+        let desc = match repo.description {
+            Some(ref s) => s.to_owned(),
+            _ => "NO DESCRIPTION".to_owned()
+        };
+        println!("{}:\n{}\n", repo.full_name, desc);
+    }
 
     Ok(())
 }
