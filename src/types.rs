@@ -1,8 +1,7 @@
 #[derive(Debug,Deserialize)]
 pub struct User {
     pub login: String,
-    #[serde(rename = "type")]
-    pub _type: String,
+    #[serde(rename = "type")] pub _type: String,
     pub html_url: String
 }
 

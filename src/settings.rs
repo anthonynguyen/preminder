@@ -1,6 +1,16 @@
+use std::collections::HashMap;
+
 use config;
 
 use errors::*;
+
+#[derive(Debug,Deserialize)]
+pub struct Settings {
+    pub github: GithubSettings,
+    pub period: String,
+
+    pub outputs: Vec<OutputBlock>
+}
 
 #[derive(Debug,Deserialize)]
 pub struct GithubSettings {
@@ -10,9 +20,9 @@ pub struct GithubSettings {
 }
 
 #[derive(Debug,Deserialize)]
-pub struct Settings {
-    pub github: GithubSettings,
-    pub period: String
+pub struct OutputBlock {
+    #[serde(rename = "type")] pub _type: String,
+    pub config: HashMap<String, String>
 }
 
 impl Settings {

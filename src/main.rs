@@ -1,17 +1,16 @@
 extern crate chrono;
 extern crate clap;
 extern crate config;
-#[macro_use]
-extern crate error_chain;
+#[macro_use] extern crate error_chain;
 extern crate rayon;
 extern crate reqwest;
 extern crate serde;
-#[macro_use]
-extern crate serde_derive;
+#[macro_use] extern crate serde_derive;
 
 mod api;
 mod duration;
 mod errors;
+mod output;
 mod run;
 mod settings;
 mod types;

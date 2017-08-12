@@ -4,11 +4,14 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use api::Api;
 use duration;
 use errors::*;
+use output;
 use settings::Settings;
 use types;
 
 pub fn run(config_path: Option<&str>) -> Result<()> {
     let sets = Settings::new(config_path)?;
+
+    let outputs = output::init(sets.outputs);
 
     let period = duration::parse(sets.period)?;
     let earliest = chrono::Utc::now() - period;
