@@ -2,7 +2,8 @@ use chrono::Duration;
 
 use errors::*;
 
-pub fn parse(mut st: String) -> Result<Duration> {
+pub fn parse(st: &str) -> Result<Duration> {
+    let mut st = st.to_owned();
     let last_char = st.pop().ok_or("Empty period!")?;
     let num = st.parse::<u64>()?;
 

@@ -1,6 +1,6 @@
 # `preminder`
 
-`preminder` is a Rust program that creates reminders about Github pull requests.
+preminder is a Rust program that creates reminders about Github pull requests.
 
 ## Configuration
 
@@ -22,5 +22,5 @@ outputs:
 
 ## License
 
-`preminder` is licensed under the MIT license. Please see the `LICENSE` file for
+preminder is licensed under the MIT license. Please see the `LICENSE` file for
 more details.

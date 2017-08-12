@@ -16,9 +16,10 @@ pub struct Api {
 }
 
 impl Api {
-    pub fn new(token: String, host: Option<String>) -> Result<Self> {
+    pub fn new(token: &str, host: &Option<String>) -> Result<Self> {
         let cl = reqwest::Client::new()?;
-        let url = match host {
+
+        let url = match host.clone() {
             Some(en) => format!("https://{}/{}", en, GITHUB_API_VERSION),
             _ => "https://api.github.com".to_owned()
         };
@@ -47,8 +48,7 @@ impl Api {
         Ok(res)
     }
 
-    fn get_pages<T>(&self, initial_path: &str) -> Result<Vec<T>>
-        where T: serde::de::DeserializeOwned {
+    fn get_pages<T: serde::de::DeserializeOwned>(&self, initial_path: &str) -> Result<Vec<T>> {
         let mut res = self.get_raw(&self.url(initial_path))?;
         let mut list: Vec<T> = Vec::new();
 

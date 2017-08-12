@@ -11,14 +11,14 @@ use types;
 pub fn run(config_path: Option<&str>) -> Result<()> {
     let sets = Settings::new(config_path)?;
 
-    let outputs = output::init(sets.outputs);
+    let outputs = output::init(&sets.outputs)?;
 
-    let period = duration::parse(sets.period)?;
+    let period = duration::parse(&sets.period)?;
     let earliest = chrono::Utc::now() - period;
 
     let api = Api::new(
-        sets.github.token,
-        sets.github.host
+        &sets.github.token,
+        &sets.github.host
     )?;
 
     let repos = api.list_repos(&sets.github.subject)?;
@@ -42,16 +42,8 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
             .map(|dt| dt >= earliest).unwrap_or(false)
     }).collect();
 
-    println!("\nFound {} pull requests recently created:", created_prs.len());
-    for pr in &created_prs {
-        println!("[{}] {} -- {}", pr.base.repo.full_name, pr.title,
-            pr.user.login);
-    }
-
-    println!("\nFound {} pull requests recently updated:", updated_prs.len());
-    for pr in &updated_prs {
-        println!("[{}] {} -- {}", pr.base.repo.full_name, pr.title,
-            pr.user.login);
+    for output in &outputs {
+        output.remind(&sets, &prs, &created_prs, &updated_prs);
     }
 
     Ok(())
