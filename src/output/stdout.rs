@@ -9,7 +9,7 @@ use settings::Settings;
 pub struct StdoutPlugin {}
 
 impl OutputPlugin for StdoutPlugin {
-    fn new(_config: &HashMap<String, String>) -> Result<Box<OutputPlugin>> {
+    fn new(_config: &Option<HashMap<String, String>>) -> Result<Box<OutputPlugin>> {
         Ok(Box::new(StdoutPlugin{}))
     }
 

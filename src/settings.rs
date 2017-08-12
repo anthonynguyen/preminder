@@ -22,7 +22,7 @@ pub struct GithubSettings {
 #[derive(Debug,Deserialize)]
 pub struct OutputBlock {
     #[serde(rename = "type")] pub _type: String,
-    pub config: HashMap<String, String>
+    pub config: Option<HashMap<String, String>>
 }
 
 impl Settings {
