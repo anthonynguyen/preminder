@@ -13,8 +13,9 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
 
     let outputs = output::init(&sets.outputs)?;
 
+    let now = chrono::Utc::now();
     let period = duration::parse(&sets.period)?;
-    let earliest = chrono::Utc::now() - period;
+    let earliest = now - period;
 
     let api = Api::new(
         &sets.github.token,
@@ -42,8 +43,13 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
             .map(|dt| dt >= earliest).unwrap_or(false)
     }).collect();
 
+    let meta = output::OutputMeta {
+        now: now.with_timezone::<chrono::offset::Local>(&chrono::offset::Local),
+        period: period.clone()
+    };
+
     for output in &outputs {
-        output.remind(&sets, &prs, &created_prs, &updated_prs)?;
+        output.remind(&meta, &prs, &created_prs, &updated_prs)?;
     }
 
     Ok(())

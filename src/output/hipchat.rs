@@ -2,10 +2,10 @@ use reqwest;
 
 use std::collections::HashMap;
 
+use duration;
 use errors::*;
-use output::OutputPlugin;
+use output::{OutputMeta, OutputPlugin};
 use types;
-use settings::Settings;
 
 #[derive(Debug,Deserialize)]
 pub struct HipchatPlugin {
@@ -38,18 +38,19 @@ impl OutputPlugin for HipchatPlugin {
     }
 
     fn remind(&self,
-        settings: &Settings,
-        _total: &Vec<types::PullRequest>,
+        meta: &OutputMeta,
+        total: &Vec<types::PullRequest>,
         created: &Vec<&types::PullRequest>,
         updated: &Vec<&types::PullRequest>
     ) -> Result<()> {
         let message = format!(
-            "Hello everyone! There have been \
+            "Hello everyone! As of <em>{}</em>, there have been \
             <strong>{}</strong> pull requests opened, and \
             <strong>{}</strong> pull requests updated in the last {}.",
+            meta.now.format("%B %d, %l:%M%P"),
             created.len(),
             updated.len(),
-            settings.period
+            duration::nice(meta.period)
         );
 
         let payload = json!({

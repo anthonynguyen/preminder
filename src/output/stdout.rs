@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 
 use errors::*;
-use output::OutputPlugin;
+use output::{OutputMeta, OutputPlugin};
 use types;
-use settings::Settings;
 
 #[derive(Debug,Deserialize)]
 pub struct StdoutPlugin {}
@@ -14,7 +13,7 @@ impl OutputPlugin for StdoutPlugin {
     }
 
     fn remind(&self,
-        _settings: &Settings,
+        _meta: &OutputMeta,
         _total: &Vec<types::PullRequest>,
         created: &Vec<&types::PullRequest>,
         updated: &Vec<&types::PullRequest>

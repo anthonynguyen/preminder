@@ -1,18 +1,26 @@
 use std::collections::HashMap;
 
+use chrono;
+
 mod hipchat;
 mod stdout;
 
 use errors::*;
-use settings::{OutputBlock, Settings};
+use settings::OutputBlock;
 use types;
+
+#[derive(Debug)]
+pub struct OutputMeta {
+    pub now: chrono::DateTime<chrono::offset::Local>,
+    pub period: chrono::Duration
+}
 
 pub trait OutputPlugin {
     fn new(config: &Option<HashMap<String, String>>)
         -> Result<Box<OutputPlugin>> where Self:Sized;
 
     fn remind(&self,
-        settings: &Settings,
+        meta: &OutputMeta,
         total: &Vec<types::PullRequest>,
         created: &Vec<&types::PullRequest>,
         updated: &Vec<&types::PullRequest>)
