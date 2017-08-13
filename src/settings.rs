@@ -18,7 +18,7 @@ pub struct Settings {
 pub struct GithubSettings {
     pub token: String,
     pub host: Option<String>,
-    pub subject: String
+    pub subjects: Vec<String>
 }
 
 #[derive(Debug,Deserialize)]

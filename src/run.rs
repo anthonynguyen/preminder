@@ -26,7 +26,11 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
         &sets.github.host
     )?;
 
-    let repos = api.list_repos(&sets.github.subject)?;
+    let repos: Vec<types::Repository> = sets.github.subjects.iter()
+        .flat_map(|subject| api.list_repos(subject))
+        .flat_map(|ve| ve)
+        .collect();
+
     println!("Found {} repositories", repos.len());
 
     let prs: Vec<types::PullRequest> = repos.par_iter()

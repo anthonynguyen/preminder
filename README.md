@@ -11,7 +11,9 @@ look like this:
 github:
   token: secret!
   host: github.organization.org
-  subject: user
+  subjects:
+    - user1
+    - user2
 
 recent: 6h
 stale: 12h
