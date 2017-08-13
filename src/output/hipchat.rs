@@ -11,12 +11,51 @@ use errors::*;
 use output::{OutputMeta, OutputPlugin};
 use types;
 
+const DEFAULT_TEMPLATE: &'static str = "Hello everyone!
+    As of <em>{{ now }}</em>, there have been
+    <strong>{{ num_opened }}</strong> pull requests opened, and
+    <strong>{{ num_updated }}</strong> pull requests updated
+    in the last {{ period }}.
+
+    <br /><br />
+
+    <strong>Recently opened pull requests:</strong>
+    <ul>
+        {{ #each opened }}
+            <li>
+                [<strong><a href=\"{{ this.html_url }}\">{{ this.base.repo.full_name }}#{{ this.number }}</a></strong>]
+                {{ this.title }}
+                &bull;
+                <a href=\"{{ this.user.html_url }}\">{{ this.user.login }}</a>
+                &bull;
+                <em>{{ relative this.created_at }}</em>
+            </li>
+        {{ /each }}
+    </ul>
+
+    <br />
+
+    <strong>Recently updated pull requests:</strong>
+    <ul>
+        {{ #each updated }}
+            <li>
+                [<strong><a href=\"{{ this.html_url }}\">{{ this.base.repo.full_name }}#{{ this.number }}</a></strong>]
+                {{ this.title }}
+                &bull;
+                <a href=\"{{ this.user.html_url }}\">{{ this.user.login }}</a>
+                &bull;
+                <em>{{ relative this.updated_at }}</em>
+            </li>
+        {{ /each }}
+    </ul>";
+
 pub struct HipchatPlugin {
     url: String,
     notify: bool,
     message_colour: String,
     from: String,
-    handlebar: handlebars::Handlebars
+    handlebar: handlebars::Handlebars,
+    template: String
 }
 
 impl OutputPlugin for HipchatPlugin {
@@ -35,10 +74,12 @@ impl OutputPlugin for HipchatPlugin {
             .unwrap_or("Github PR reminder".to_owned());
         let message_colour = config.remove("colour")
             .unwrap_or("yellow".to_owned());
-        let notify: bool = config.remove("notify")
+        let notify = config.remove("notify")
             .unwrap_or("false".to_owned())
             .parse::<bool>()
             .chain_err(|| "Valid values for 'notify' are `true` and `false`")?;
+        let template = config.remove("template")
+            .unwrap_or(DEFAULT_TEMPLATE.to_owned());
 
         let url = format!("{}/v2/room/{}/notification?auth_token={}",
             base, room, token);
@@ -71,7 +112,8 @@ impl OutputPlugin for HipchatPlugin {
             notify: notify,
             message_colour: message_colour.to_owned(),
             from: from,
-            handlebar: handlebar
+            handlebar: handlebar,
+            template: template
         }))
     }
 
@@ -92,44 +134,7 @@ impl OutputPlugin for HipchatPlugin {
             "updated": updated
         });
 
-        let message = self.handlebar.template_render("Hello everyone!
-            As of <em>{{ now }}</em>, there have been
-            <strong>{{ num_opened }}</strong> pull requests opened, and
-            <strong>{{ num_updated }}</strong> pull requests updated
-            in the last {{ period }}.\
-
-            <br /><br />
-
-            <strong>Recently opened pull requests:</strong>
-            <ul>
-                {{ #each opened }}
-                    <li>
-                        [<strong><a href=\"{{ this.html_url }}\">{{ this.base.repo.full_name }}#{{ this.number }}</a></strong>]
-                        {{ this.title }}
-                        &bull;
-                        <a href=\"{{ this.user.html_url }}\">{{ this.user.login }}</a>
-                        &bull;
-                        <em>{{ relative this.created_at }}</em>
-                    </li>
-                {{ /each }}
-            </ul>
-
-            <br />
-
-            <strong>Recently updated pull requests:</strong>
-            <ul>
-                {{ #each updated }}
-                    <li>
-                        [<strong><a href=\"{{ this.html_url }}\">{{ this.base.repo.full_name }}#{{ this.number }}</a></strong>]
-                        {{ this.title }}
-                        &bull;
-                        <a href=\"{{ this.user.html_url }}\">{{ this.user.login }}</a>
-                        &bull;
-                        <em>{{ relative this.updated_at }}</em>
-                    </li>
-                {{ /each }}
-            </ul>
-            ", &info)?;
+        let message = self.handlebar.template_render(&self.template, &info)?;
 
         let re = regex::Regex::new(r"\s+")?;
         let message = re.replace_all(&message, " ");
