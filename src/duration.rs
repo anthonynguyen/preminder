@@ -1,4 +1,4 @@
-use chrono::Duration;
+use chrono::{DateTime, Duration, TimeZone};
 
 use errors::*;
 
@@ -50,4 +50,9 @@ pub fn nice(dura: Duration) -> String {
 
     let seconds = dura.num_seconds();
     format!("{} second{}", seconds, plural(seconds))
+}
+
+pub fn relative<T: TimeZone>(before: DateTime<T>, after: DateTime<T>) -> String {
+    let diff = after.signed_duration_since::<T>(before);
+    format!("{} ago", nice(diff))
 }
