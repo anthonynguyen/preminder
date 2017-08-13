@@ -121,7 +121,8 @@ impl OutputPlugin for HipchatPlugin {
         meta: &OutputMeta,
         _total: &Vec<types::PullRequest>,
         created: &Vec<&types::PullRequest>,
-        updated: &Vec<&types::PullRequest>
+        updated: &Vec<&types::PullRequest>,
+        _stale: &Vec<&types::PullRequest>
     ) -> Result<()> {
         let info = json!({
             "now": meta.now.format("%B %d, %l:%M%P").to_string(),

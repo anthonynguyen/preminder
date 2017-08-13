@@ -7,7 +7,9 @@ use errors::*;
 #[derive(Debug,Deserialize)]
 pub struct Settings {
     pub github: GithubSettings,
+
     pub recent: String,
+    pub stale: String,
 
     pub outputs: Vec<OutputBlock>
 }

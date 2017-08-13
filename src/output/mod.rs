@@ -12,7 +12,8 @@ use types;
 #[derive(Debug)]
 pub struct OutputMeta {
     pub now: chrono::DateTime<chrono::offset::Local>,
-    pub recent: chrono::Duration
+    pub recent: chrono::Duration,
+    pub stale: chrono::Duration
 }
 
 pub trait OutputPlugin {
@@ -23,7 +24,8 @@ pub trait OutputPlugin {
         meta: &OutputMeta,
         total: &Vec<types::PullRequest>,
         created: &Vec<&types::PullRequest>,
-        updated: &Vec<&types::PullRequest>)
+        updated: &Vec<&types::PullRequest>,
+        stale: &Vec<&types::PullRequest>)
         -> Result<()>;
 }
 

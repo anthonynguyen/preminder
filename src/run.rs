@@ -14,8 +14,12 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
     let outputs = output::init(&sets.outputs)?;
 
     let now = chrono::Utc::now();
+
     let recent = duration::parse(&sets.recent)?;
-    let earliest = now - recent;
+    let recent_earliest = now - recent;
+
+    let stale = duration::parse(&sets.stale)?;
+    let stale_latest = now - stale;
 
     let api = Api::new(
         &sets.github.token,
@@ -35,21 +39,27 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
 
     let created_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
         pr.created_at.parse::<chrono::DateTime<chrono::Utc>>()
-            .map(|dt| dt >= earliest).unwrap_or(false)
+            .map(|dt| dt >= recent_earliest).unwrap_or(false)
     }).collect();
 
     let updated_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
         pr.updated_at.parse::<chrono::DateTime<chrono::Utc>>()
-            .map(|dt| dt >= earliest).unwrap_or(false)
+            .map(|dt| dt >= recent_earliest).unwrap_or(false)
+    }).collect();
+
+    let stale_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
+        pr.updated_at.parse::<chrono::DateTime<chrono::Utc>>()
+            .map(|dt| dt <= stale_latest).unwrap_or(false)
     }).collect();
 
     let meta = output::OutputMeta {
         now: now.with_timezone::<chrono::offset::Local>(&chrono::offset::Local),
-        recent: recent.clone()
+        recent: recent.clone(),
+        stale: stale.clone()
     };
 
     for output in &outputs {
-        output.remind(&meta, &prs, &created_prs, &updated_prs)?;
+        output.remind(&meta, &prs, &created_prs, &updated_prs, &stale_prs)?;
     }
 
     Ok(())
