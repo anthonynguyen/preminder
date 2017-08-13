@@ -1,15 +1,11 @@
 use std::collections::HashMap;
 
+mod hipchat;
 mod stdout;
 
 use errors::*;
 use settings::{OutputBlock, Settings};
 use types;
-
-#[derive(Debug,Deserialize)]
-pub enum OutputPlugins {
-    Stdout
-}
 
 pub trait OutputPlugin {
     fn new(config: &Option<HashMap<String, String>>)
@@ -20,7 +16,7 @@ pub trait OutputPlugin {
         total: &Vec<types::PullRequest>,
         created: &Vec<&types::PullRequest>,
         updated: &Vec<&types::PullRequest>)
-        -> ();
+        -> Result<()>;
 }
 
 pub fn init(configured: &Vec<OutputBlock>) -> Result<Vec<Box<OutputPlugin>>> {
@@ -29,6 +25,7 @@ pub fn init(configured: &Vec<OutputBlock>) -> Result<Vec<Box<OutputPlugin>>> {
     for output in configured {
         let plugin = match output._type.as_ref() {
             "stdout" => stdout::StdoutPlugin::new(&output.config)?,
+            "hipchat" => hipchat::HipchatPlugin::new(&output.config)?,
             _ => return Err(Error::from(format!("Invalid output type: {} ", output._type)))
         };
 

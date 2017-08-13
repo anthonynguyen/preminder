@@ -18,7 +18,7 @@ impl OutputPlugin for StdoutPlugin {
         _total: &Vec<types::PullRequest>,
         created: &Vec<&types::PullRequest>,
         updated: &Vec<&types::PullRequest>
-    ) {
+    ) -> Result<()> {
         println!("\nFound {} pull requests recently created:", created.len());
         for pr in created {
             println!("[{}] {} -- {}", pr.base.repo.full_name, pr.title,
@@ -30,5 +30,7 @@ impl OutputPlugin for StdoutPlugin {
             println!("[{}] {} -- {}", pr.base.repo.full_name, pr.title,
                 pr.user.login);
         };
+
+        Ok(())
     }
 }

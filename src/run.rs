@@ -43,7 +43,7 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
     }).collect();
 
     for output in &outputs {
-        output.remind(&sets, &prs, &created_prs, &updated_prs);
+        output.remind(&sets, &prs, &created_prs, &updated_prs)?;
     }
 
     Ok(())
