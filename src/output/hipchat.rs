@@ -54,8 +54,7 @@ pub struct HipchatPlugin {
     notify: bool,
     message_colour: String,
     from: String,
-    handlebar: handlebars::Handlebars,
-    template: String
+    handlebar: handlebars::Handlebars
 }
 
 impl OutputPlugin for HipchatPlugin {
@@ -105,6 +104,7 @@ impl OutputPlugin for HipchatPlugin {
             Ok(())
         };
 
+        handlebar.register_template_string("hipchat", template)?;
         handlebar.register_helper("relative", Box::new(relative_helper));
 
         Ok(Box::new(HipchatPlugin{
@@ -112,8 +112,7 @@ impl OutputPlugin for HipchatPlugin {
             notify: notify,
             message_colour: message_colour.to_owned(),
             from: from,
-            handlebar: handlebar,
-            template: template
+            handlebar: handlebar
         }))
     }
 
@@ -134,7 +133,7 @@ impl OutputPlugin for HipchatPlugin {
             "updated": updated
         });
 
-        let message = self.handlebar.template_render(&self.template, &info)?;
+        let message = self.handlebar.render("hipchat", &info)?;
 
         let re = regex::Regex::new(r"\s+")?;
         let message = re.replace_all(&message, " ");
