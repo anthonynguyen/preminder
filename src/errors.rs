@@ -6,6 +6,7 @@ error_chain!{
         Json(::serde_json::Error);
         ParseBool(::std::str::ParseBoolError);
         ParseInt(::std::num::ParseIntError);
+        Regex(::regex::Error);
         Reqwest(::reqwest::Error);
     }
 }

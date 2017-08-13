@@ -4,6 +4,7 @@ extern crate config;
 #[macro_use] extern crate error_chain;
 extern crate handlebars;
 extern crate rayon;
+extern crate regex;
 extern crate reqwest;
 extern crate serde;
 #[macro_use] extern crate serde_derive;

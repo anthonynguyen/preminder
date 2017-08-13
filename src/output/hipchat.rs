@@ -1,5 +1,6 @@
 use chrono;
 use handlebars;
+use regex;
 use reqwest;
 
 use std;
@@ -129,6 +130,9 @@ impl OutputPlugin for HipchatPlugin {
                 {{ /each }}
             </ul>
             ", &info)?;
+
+        let re = regex::Regex::new(r"\s+")?;
+        let message = re.replace_all(&message, " ");
 
         let payload = json!({
             "from": self.from,
