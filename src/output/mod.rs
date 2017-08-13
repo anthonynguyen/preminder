@@ -12,7 +12,7 @@ use types;
 #[derive(Debug)]
 pub struct OutputMeta {
     pub now: chrono::DateTime<chrono::offset::Local>,
-    pub period: chrono::Duration
+    pub recent: chrono::Duration
 }
 
 pub trait OutputPlugin {

@@ -4,7 +4,7 @@ use errors::*;
 
 pub fn parse(st: &str) -> Result<Duration> {
     let mut st = st.to_owned();
-    let last_char = st.pop().ok_or("Empty period!")?;
+    let last_char = st.pop().ok_or("Empty duration!")?;
     let num = st.parse::<u64>()?;
 
     match last_char {
@@ -13,7 +13,7 @@ pub fn parse(st: &str) -> Result<Duration> {
         'h' => Ok(Duration::hours(num as i64)),
         'd' => Ok(Duration::days(num as i64)),
         'w' => Ok(Duration::weeks(num as i64)),
-        _ => Err(Error::from("Invalid type for period"))
+        _ => Err(Error::from("Invalid type for duration"))
     }
 }
 

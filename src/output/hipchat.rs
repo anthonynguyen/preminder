@@ -15,7 +15,7 @@ const DEFAULT_TEMPLATE: &'static str = "Hello everyone!
     As of <em>{{ now }}</em>, there have been
     <strong>{{ num_opened }}</strong> pull requests opened, and
     <strong>{{ num_updated }}</strong> pull requests updated
-    in the last {{ period }}.
+    in the last {{ recent }}.
 
     <br /><br />
 
@@ -125,7 +125,7 @@ impl OutputPlugin for HipchatPlugin {
     ) -> Result<()> {
         let info = json!({
             "now": meta.now.format("%B %d, %l:%M%P").to_string(),
-            "period": duration::nice(meta.period),
+            "recent": duration::nice(meta.recent),
             "num_opened": created.len(),
             "num_updated": updated.len(),
 

@@ -13,7 +13,7 @@ github:
   host: github.organization.org
   subject: user
 
-period: 6h
+recent: 6h
 
 outputs:
   - type: stdout
