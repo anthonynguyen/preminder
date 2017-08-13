@@ -41,8 +41,14 @@ pub fn nice(dura: Duration) -> String {
         (dura.num_minutes(), "minute", Duration::minutes)
     ];
 
+    let mut skip = true;
+
     for p in &periods {
         if p.0 > 0 {
+            if skip {
+                skip = false;
+                continue;
+            }
             let coarse = p.2(p.0);
             return format!("{}{} {}{}", approx(&coarse, &dura), p.0, p.1, plural(p.0));
         }
