@@ -26,7 +26,7 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
         &sets.github.host
     )?;
 
-    let repos: Vec<types::Repository> = sets.github.subjects.iter()
+    let repos: Vec<types::Repository> = sets.github.subjects.par_iter()
         .flat_map(|subject| api.list_repos(subject))
         .flat_map(|ve| ve)
         .collect();
@@ -41,10 +41,11 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
     let total_prs = prs.len();
     println!("Found {} pull requests", total_prs);
 
-    let created_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
+    let mut created_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
             pr.created_at.parse::<chrono::DateTime<chrono::Utc>>()
                 .map(|dt| dt >= recent_earliest).unwrap_or(false)
         }).collect();
+    created_prs.sort_by(|a, b| b.created_at.cmp(&a.created_at));
 
     let mut updated_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
             pr.updated_at.parse::<chrono::DateTime<chrono::Utc>>()
