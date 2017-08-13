@@ -2,6 +2,7 @@ extern crate chrono;
 extern crate clap;
 extern crate config;
 #[macro_use] extern crate error_chain;
+extern crate handlebars;
 extern crate rayon;
 extern crate reqwest;
 extern crate serde;
