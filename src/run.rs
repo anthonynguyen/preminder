@@ -38,19 +38,21 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
     println!("Found {} pull requests", total_prs);
 
     let created_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
-        pr.created_at.parse::<chrono::DateTime<chrono::Utc>>()
-            .map(|dt| dt >= recent_earliest).unwrap_or(false)
-    }).collect();
+            pr.created_at.parse::<chrono::DateTime<chrono::Utc>>()
+                .map(|dt| dt >= recent_earliest).unwrap_or(false)
+        }).collect();
 
-    let updated_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
-        pr.updated_at.parse::<chrono::DateTime<chrono::Utc>>()
-            .map(|dt| dt >= recent_earliest).unwrap_or(false)
-    }).collect();
+    let mut updated_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
+            pr.updated_at.parse::<chrono::DateTime<chrono::Utc>>()
+                .map(|dt| dt >= recent_earliest).unwrap_or(false)
+        }).collect();
+    updated_prs.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
 
-    let stale_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
-        pr.updated_at.parse::<chrono::DateTime<chrono::Utc>>()
-            .map(|dt| dt <= stale_latest).unwrap_or(false)
-    }).collect();
+    let mut stale_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
+            pr.updated_at.parse::<chrono::DateTime<chrono::Utc>>()
+                .map(|dt| dt <= stale_latest).unwrap_or(false)
+        }).collect();
+    stale_prs.sort_by(|a, b| a.updated_at.cmp(&b.updated_at));;
 
     let meta = output::OutputMeta {
         now: now.with_timezone::<chrono::offset::Local>(&chrono::offset::Local),

@@ -1,5 +1,6 @@
 error_chain!{
     foreign_links {
+        ChronoParser(::chrono::ParseError);
         Config(::config::ConfigError);
         HandlebarsRender(::handlebars::RenderError);
         HandlebarsTemplate(::handlebars::TemplateError);
