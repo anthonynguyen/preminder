@@ -15,7 +15,7 @@ const DEFAULT_TEMPLATE: &'static str = "Hello everyone!
     As of <em>{{ now }}</em>, there have been
     <strong>{{ num_opened }}</strong> pull requests opened, and
     <strong>{{ num_updated }}</strong> pull requests updated
-    in the last {{ recent }}.
+    in the last {{ recent_period }}.
 
     <br /><br />
 
@@ -119,19 +119,24 @@ impl OutputPlugin for HipchatPlugin {
     // https://www.hipchat.com/docs/apiv2/method/send_room_notification
     fn remind(&self,
         meta: &OutputMeta,
-        _total: &Vec<types::PullRequest>,
+        total: &Vec<types::PullRequest>,
         created: &Vec<&types::PullRequest>,
         updated: &Vec<&types::PullRequest>,
-        _stale: &Vec<&types::PullRequest>
+        stale: &Vec<&types::PullRequest>
     ) -> Result<()> {
         let info = json!({
             "now": meta.now.format("%B %d, %l:%M%P").to_string(),
-            "recent": duration::nice(meta.recent),
+            "recent_period": duration::nice(meta.recent),
+            "stale_period": duration::nice(meta.stale),
+
+            "num_total": total.len(),
             "num_opened": created.len(),
             "num_updated": updated.len(),
+            "num_stale": stale.len(),
 
             "opened": created,
-            "updated": updated
+            "updated": updated,
+            "stale": stale
         });
 
         let message = self.handlebar.render("hipchat", &info)?;
