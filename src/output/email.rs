@@ -1,25 +1,34 @@
 use std::collections::HashMap;
 
+use handlebars;
 use lettre::email::EmailBuilder;
 use lettre::transport::smtp::{SecurityLevel, SmtpTransportBuilder};
 use lettre::transport::smtp::authentication::Mechanism;
 use lettre::transport::EmailTransport;
 
+use duration;
 use errors::*;
-use output::{OutputMeta, OutputPlugin};
+use output::{OutputMeta, OutputPlugin, handlebars_relative_helper};
 use types;
 
-#[derive(Debug,Deserialize)]
+const SUBJECT_TEMPLATE_NAME: &'static str = "subject";
+const BODY_TEMPLATE_NAME: &'static str = "body";
+
+const DEFAULT_SUBJECT_TEMPLATE: &'static str = "PR REMINDER";
+const DEFAULT_BODY_TEMPLATE: &'static str = "Hello everyone!";
+
 pub struct EmailPlugin {
-    pub smtp_server: String,
-    pub smtp_port: u16,
-    pub smtp_username: String,
-    pub smtp_password: String,
+    smtp_server: String,
+    smtp_port: u16,
+    smtp_username: String,
+    smtp_password: String,
 
-    pub from_address: String,
-    pub from_name: String,
+    from_address: String,
+    from_name: String,
 
-    pub to_address: String
+    to_address: String,
+
+    handlebar: handlebars::Handlebars
 }
 
 impl OutputPlugin for EmailPlugin {
@@ -41,10 +50,20 @@ impl OutputPlugin for EmailPlugin {
         let from_address = config.remove("from_address")
             .ok_or("No FROM address found")?.to_owned();
         let from_name = config.remove("from_name")
-            .unwrap_or("preminder - Github PR reminder".to_owned());
+            .unwrap_or("preminder".to_owned());
 
         let to_address = config.remove("to_address")
             .ok_or("No TO address found")?.to_owned();
+
+        let subject_template = config.remove("subject_template")
+            .unwrap_or(DEFAULT_SUBJECT_TEMPLATE.to_owned());
+        let body_template = config.remove("body_template")
+            .unwrap_or(DEFAULT_BODY_TEMPLATE.to_owned());
+
+        let mut handlebar = handlebars::Handlebars::new();
+        handlebar.register_template_string(SUBJECT_TEMPLATE_NAME, subject_template)?;
+        handlebar.register_template_string(BODY_TEMPLATE_NAME, body_template)?;
+        handlebar.register_helper("relative", Box::new(handlebars_relative_helper));
 
         Ok(Box::new(EmailPlugin{
             smtp_server: smtp_server,
@@ -55,25 +74,45 @@ impl OutputPlugin for EmailPlugin {
             from_address: from_address,
             from_name: from_name,
 
-            to_address: to_address
+            to_address: to_address,
+
+            handlebar: handlebar
         }))
     }
 
     fn remind(&self,
-        _meta: &OutputMeta,
-        _total: &Vec<types::PullRequest>,
-        _created: &Vec<&types::PullRequest>,
-        _updated: &Vec<&types::PullRequest>,
-        _stale: &Vec<&types::PullRequest>
+        meta: &OutputMeta,
+        total: &Vec<types::PullRequest>,
+        created: &Vec<&types::PullRequest>,
+        updated: &Vec<&types::PullRequest>,
+        stale: &Vec<&types::PullRequest>
     ) -> Result<()> {
+        let info = json!({
+            "now": meta.now.format("%B %d, %l:%M%P").to_string(),
+            "recent_period": duration::nice(meta.recent),
+            "stale_period": duration::nice(meta.stale),
+
+            "num_total": total.len(),
+            "num_opened": created.len(),
+            "num_updated": updated.len(),
+            "num_stale": stale.len(),
+
+            "opened": created,
+            "updated": updated,
+            "stale": stale
+        });
+
+        let subject = self.handlebar.render(SUBJECT_TEMPLATE_NAME, &info)?;
+        let body = self.handlebar.render(BODY_TEMPLATE_NAME, &info)?;
+
         let mail = EmailBuilder::new()
             .from((self.from_address.as_ref(), self.from_name.as_ref()))
             .to(self.to_address.as_ref())
-            .subject("Hello from preminder!")
-            .text("Hope you're having a good day!")
+            .subject(subject.as_ref())
+            .html(body.as_ref())
             .build()?;
 
-        let mut mailer = SmtpTransportBuilder::new((self.smtp_server.as_ref(), 25))?
+        let mut mailer = SmtpTransportBuilder::new((self.smtp_server.as_ref(), self.smtp_port))?
             .credentials(&self.smtp_username, &self.smtp_password)
             .security_level(SecurityLevel::Opportunistic)
             .smtp_utf8(true)

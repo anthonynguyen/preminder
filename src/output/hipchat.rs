@@ -1,16 +1,16 @@
-use chrono;
 use handlebars;
 use regex;
 use reqwest;
 
-use std;
 use std::collections::HashMap;
+use std::io::Read;
 
 use duration;
 use errors::*;
-use output::{OutputMeta, OutputPlugin};
+use output::{OutputMeta, OutputPlugin, handlebars_relative_helper};
 use types;
 
+const TEMPLATE_NAME: &'static str = "hipchat";
 const DEFAULT_TEMPLATE: &'static str = "Hello everyone!
     As of <em>{{ now }}</em>, there have been
     <strong>{{ num_opened }}</strong> pull requests opened, and
@@ -84,28 +84,8 @@ impl OutputPlugin for HipchatPlugin {
             base, room, token);
 
         let mut handlebar = handlebars::Handlebars::new();
-        let relative_helper = |helper: &handlebars::Helper,
-            _: &handlebars::Handlebars,
-            rc: &mut handlebars::RenderContext
-        | -> std::result::Result<(), handlebars::RenderError> {
-            let param = helper.param(0)
-                .ok_or(handlebars::RenderError::new("No param given?"))?
-                .value()
-                .as_str()
-                .ok_or(handlebars::RenderError::new("Param is not a string"))?
-                .parse::<chrono::DateTime<chrono::Utc>>()
-                .map_err(|_| handlebars::RenderError::new("Param could not be parsed as a datetime"))?
-                .with_timezone::<chrono::offset::Local>(&chrono::offset::Local);
-
-            let now = chrono::Local::now();
-            let fin = duration::relative::<chrono::offset::Local>(param, now);
-
-            rc.writer.write(&fin.into_bytes())?;
-            Ok(())
-        };
-
-        handlebar.register_template_string("hipchat", template)?;
-        handlebar.register_helper("relative", Box::new(relative_helper));
+        handlebar.register_template_string(TEMPLATE_NAME, template)?;
+        handlebar.register_helper("relative", Box::new(handlebars_relative_helper));
 
         Ok(Box::new(HipchatPlugin{
             url: url,
@@ -139,7 +119,7 @@ impl OutputPlugin for HipchatPlugin {
             "stale": stale
         });
 
-        let message = self.handlebar.render("hipchat", &info)?;
+        let message = self.handlebar.render(TEMPLATE_NAME, &info)?;
 
         let re = regex::Regex::new(r"\s+")?;
         let message = re.replace_all(&message, " ");
@@ -153,12 +133,16 @@ impl OutputPlugin for HipchatPlugin {
         });
 
         let client = reqwest::Client::new()?;
-        let res = client.post(&self.url)?
+        let mut res = client.post(&self.url)?
             .header(reqwest::header::ContentType::json())
             .body(payload.to_string())
             .send()?;
 
+        let mut content = String::new();
+        res.read_to_string(&mut content)?;
+
         println!("{:?}", res);
+        println!("{}", content);
 
         Ok(())
     }
