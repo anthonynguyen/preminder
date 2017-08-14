@@ -26,14 +26,14 @@ pub trait OutputPlugin {
 
     fn remind(&self,
         meta: &OutputMeta,
-        total: &Vec<types::PullRequest>,
-        created: &Vec<&types::PullRequest>,
-        updated: &Vec<&types::PullRequest>,
-        stale: &Vec<&types::PullRequest>)
+        total: &[types::PullRequest],
+        created: &[&types::PullRequest],
+        updated: &[&types::PullRequest],
+        stale: &[&types::PullRequest])
         -> Result<()>;
 }
 
-pub fn init(configured: &Vec<OutputBlock>) -> Result<Vec<Box<OutputPlugin>>> {
+pub fn init(configured: &[OutputBlock]) -> Result<Vec<Box<OutputPlugin>>> {
     let mut plugins: Vec<Box<OutputPlugin>> = Vec::new();
 
     for output in configured {
@@ -55,10 +55,10 @@ pub fn handlebars_relative_helper(helper: &handlebars::Helper,
     rc: &mut handlebars::RenderContext
     ) -> std::result::Result<(), handlebars::RenderError> {
     let param = helper.param(0)
-        .ok_or(handlebars::RenderError::new("No param given?"))?
+        .ok_or_else(|| handlebars::RenderError::new("No param given?"))?
         .value()
         .as_str()
-        .ok_or(handlebars::RenderError::new("Param is not a string"))?
+        .ok_or_else(|| handlebars::RenderError::new("Param is not a string"))?
         .parse::<chrono::DateTime<chrono::Utc>>()
         .map_err(|_| handlebars::RenderError::new("Param could not be parsed as a datetime"))?
         .with_timezone::<chrono::offset::Local>(&chrono::offset::Local);
@@ -66,6 +66,6 @@ pub fn handlebars_relative_helper(helper: &handlebars::Helper,
     let now = chrono::Local::now();
     let fin = duration::relative::<chrono::offset::Local>(param, now);
 
-    rc.writer.write(&fin.into_bytes())?;
+    rc.writer.write_all(&fin.into_bytes())?;
     Ok(())
 }

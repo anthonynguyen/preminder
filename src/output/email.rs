@@ -39,26 +39,26 @@ impl OutputPlugin for EmailPlugin {
         let smtp_server = config.remove("smtp_server")
             .ok_or("No SMTP server found")?.to_owned();
         let smtp_port = config.remove("smtp_port")
-            .unwrap_or("25".to_owned())
+            .unwrap_or_else(|| "25".to_owned())
             .parse::<u16>()
             .chain_err(|| "smtp_port must be an integer!")?;
         let smtp_username = config.remove("smtp_username")
-            .unwrap_or("".to_owned());
+            .unwrap_or_else(|| "".to_owned());
         let smtp_password = config.remove("smtp_password")
-            .unwrap_or("".to_owned());
+            .unwrap_or_else(|| "".to_owned());
 
         let from_address = config.remove("from_address")
             .ok_or("No FROM address found")?.to_owned();
         let from_name = config.remove("from_name")
-            .unwrap_or("preminder".to_owned());
+            .unwrap_or_else(|| "preminder".to_owned());
 
         let to_address = config.remove("to_address")
             .ok_or("No TO address found")?.to_owned();
 
         let subject_template = config.remove("subject_template")
-            .unwrap_or(DEFAULT_SUBJECT_TEMPLATE.to_owned());
+            .unwrap_or_else(|| DEFAULT_SUBJECT_TEMPLATE.to_owned());
         let body_template = config.remove("body_template")
-            .unwrap_or(DEFAULT_BODY_TEMPLATE.to_owned());
+            .unwrap_or_else(|| DEFAULT_BODY_TEMPLATE.to_owned());
 
         let mut handlebar = handlebars::Handlebars::new();
         handlebar.register_template_string(SUBJECT_TEMPLATE_NAME, subject_template)?;
@@ -82,10 +82,10 @@ impl OutputPlugin for EmailPlugin {
 
     fn remind(&self,
         meta: &OutputMeta,
-        total: &Vec<types::PullRequest>,
-        created: &Vec<&types::PullRequest>,
-        updated: &Vec<&types::PullRequest>,
-        stale: &Vec<&types::PullRequest>
+        total: &[types::PullRequest],
+        created: &[&types::PullRequest],
+        updated: &[&types::PullRequest],
+        stale: &[&types::PullRequest]
     ) -> Result<()> {
         let info = json!({
             "now": meta.now.format("%B %d, %l:%M%P").to_string(),

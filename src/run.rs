@@ -60,8 +60,8 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
 
     let meta = output::OutputMeta {
         now: now.with_timezone::<chrono::offset::Local>(&chrono::offset::Local),
-        recent: recent.clone(),
-        stale: stale.clone()
+        recent: recent,
+        stale: stale
     };
 
     for output in &outputs {

@@ -34,7 +34,8 @@ fn plural(num: i64) -> String {
 }
 
 pub fn nice(dura: chrono::Duration) -> String {
-    let periods: Vec<(i64, &str, fn(i64) -> chrono::Duration)> = vec![
+    type DurationConstructor = fn(i64) -> chrono::Duration;
+    let periods: Vec<(i64, &str, DurationConstructor)> = vec![
         (dura.num_weeks(), "week", chrono::Duration::weeks),
         (dura.num_days(), "day", chrono::Duration::days),
         (dura.num_hours(), "hour", chrono::Duration::hours),

@@ -70,15 +70,15 @@ impl OutputPlugin for HipchatPlugin {
             .ok_or("No Hipchat token found")?.to_owned();
 
         let from = config.remove("from")
-            .unwrap_or("Github PR reminder".to_owned());
+            .unwrap_or_else(|| "Github PR reminder".to_owned());
         let message_colour = config.remove("colour")
-            .unwrap_or("yellow".to_owned());
+            .unwrap_or_else(|| "yellow".to_owned());
         let notify = config.remove("notify")
-            .unwrap_or("false".to_owned())
+            .unwrap_or_else(|| "false".to_owned())
             .parse::<bool>()
             .chain_err(|| "Valid values for 'notify' are `true` and `false`")?;
         let template = config.remove("template")
-            .unwrap_or(DEFAULT_TEMPLATE.to_owned());
+            .unwrap_or_else(|| DEFAULT_TEMPLATE.to_owned());
 
         let url = format!("{}/v2/room/{}/notification?auth_token={}",
             base, room, token);
@@ -99,10 +99,10 @@ impl OutputPlugin for HipchatPlugin {
     // https://www.hipchat.com/docs/apiv2/method/send_room_notification
     fn remind(&self,
         meta: &OutputMeta,
-        total: &Vec<types::PullRequest>,
-        created: &Vec<&types::PullRequest>,
-        updated: &Vec<&types::PullRequest>,
-        stale: &Vec<&types::PullRequest>
+        total: &[types::PullRequest],
+        created: &[&types::PullRequest],
+        updated: &[&types::PullRequest],
+        stale: &[&types::PullRequest]
     ) -> Result<()> {
         let info = json!({
             "now": meta.now.format("%B %d, %l:%M%P").to_string(),
@@ -126,7 +126,7 @@ impl OutputPlugin for HipchatPlugin {
 
         let client = reqwest::Client::new()?;
 
-        for chunk in message.into_bytes().chunks(10000) {
+        for chunk in message.into_bytes().chunks(10_000) {
             let payload = json!({
                 "from": self.from,
                 "color": self.message_colour,

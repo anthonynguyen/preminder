@@ -15,10 +15,10 @@ impl OutputPlugin for StdoutPlugin {
 
     fn remind(&self,
         _meta: &OutputMeta,
-        total: &Vec<types::PullRequest>,
-        created: &Vec<&types::PullRequest>,
-        updated: &Vec<&types::PullRequest>,
-        stale: &Vec<&types::PullRequest>
+        total: &[types::PullRequest],
+        created: &[&types::PullRequest],
+        updated: &[&types::PullRequest],
+        stale: &[&types::PullRequest]
     ) -> Result<()> {
         println!("\nTotal open pull requests: {}", total.len());
         println!("Recently opened pull requests: {}", created.len());
