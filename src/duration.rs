@@ -1,23 +1,23 @@
-use chrono::{DateTime, Duration, TimeZone};
+use chrono;
 
 use errors::*;
 
-pub fn parse(st: &str) -> Result<Duration> {
+pub fn parse(st: &str) -> Result<chrono::Duration> {
     let mut st = st.to_owned();
     let last_char = st.pop().ok_or("Empty duration!")?;
     let num = st.parse::<u64>()?;
 
     match last_char {
-        's' => Ok(Duration::seconds(num as i64)),
-        'm' => Ok(Duration::minutes(num as i64)),
-        'h' => Ok(Duration::hours(num as i64)),
-        'd' => Ok(Duration::days(num as i64)),
-        'w' => Ok(Duration::weeks(num as i64)),
+        's' => Ok(chrono::Duration::seconds(num as i64)),
+        'm' => Ok(chrono::Duration::minutes(num as i64)),
+        'h' => Ok(chrono::Duration::hours(num as i64)),
+        'd' => Ok(chrono::Duration::days(num as i64)),
+        'w' => Ok(chrono::Duration::weeks(num as i64)),
         _ => Err(Error::from("Invalid type for duration"))
     }
 }
 
-fn approx(coarse: &Duration, exact: &Duration) -> String {
+fn approx(coarse: &chrono::Duration, exact: &chrono::Duration) -> String {
     if coarse.num_seconds() != exact.num_seconds() {
         "~".to_owned()
     } else {
@@ -33,12 +33,12 @@ fn plural(num: i64) -> String {
     }
 }
 
-pub fn nice(dura: Duration) -> String {
-    let periods: Vec<(i64, &str, fn(i64) -> Duration)> = vec![
-        (dura.num_weeks(), "week", Duration::weeks),
-        (dura.num_days(), "day", Duration::days),
-        (dura.num_hours(), "hour", Duration::hours),
-        (dura.num_minutes(), "minute", Duration::minutes)
+pub fn nice(dura: chrono::Duration) -> String {
+    let periods: Vec<(i64, &str, fn(i64) -> chrono::Duration)> = vec![
+        (dura.num_weeks(), "week", chrono::Duration::weeks),
+        (dura.num_days(), "day", chrono::Duration::days),
+        (dura.num_hours(), "hour", chrono::Duration::hours),
+        (dura.num_minutes(), "minute", chrono::Duration::minutes)
     ];
 
     let mut skip = true;
@@ -58,7 +58,15 @@ pub fn nice(dura: Duration) -> String {
     format!("{} second{}", seconds, plural(seconds))
 }
 
-pub fn relative<T: TimeZone>(before: DateTime<T>, after: DateTime<T>) -> String {
+pub fn relative<T: chrono::TimeZone>(before: chrono::DateTime<T>, after: chrono::DateTime<T>) -> String {
     let diff = after.signed_duration_since::<T>(before);
     format!("{} ago", nice(diff))
+}
+
+pub fn relative_helper(timestamp: &str) -> Result<String> {
+    let timestamp = timestamp
+        .parse::<chrono::DateTime<chrono::Utc>>()?
+        .with_timezone::<chrono::offset::Local>(&chrono::offset::Local);
+
+    Ok(relative::<chrono::offset::Local>(timestamp, chrono::Local::now()))
 }

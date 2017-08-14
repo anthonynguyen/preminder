@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use chrono;
 
+mod email;
 mod hipchat;
 mod stdout;
 
@@ -36,7 +37,8 @@ pub fn init(configured: &Vec<OutputBlock>) -> Result<Vec<Box<OutputPlugin>>> {
         let plugin = match output._type.as_ref() {
             "stdout" => stdout::StdoutPlugin::new(&output.config)?,
             "hipchat" => hipchat::HipchatPlugin::new(&output.config)?,
-            _ => return Err(Error::from(format!("Invalid output type: {} ", output._type)))
+            "email" => email::EmailPlugin::new(&output.config)?,
+            _ => return Err(Error::from(format!("Invalid output type: {}", output._type)))
         };
 
         plugins.push(plugin);

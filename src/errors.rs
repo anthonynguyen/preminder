@@ -6,6 +6,8 @@ error_chain!{
         HandlebarsTemplate(::handlebars::TemplateError);
         Io(::std::io::Error);
         Json(::serde_json::Error);
+        Lettre(::lettre::email::error::Error);
+        LettreSmtp(::lettre::transport::smtp::error::Error);
         ParseBool(::std::str::ParseBoolError);
         ParseInt(::std::num::ParseIntError);
         Regex(::regex::Error);

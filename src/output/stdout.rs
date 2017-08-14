@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use chrono;
-
 use duration;
 use errors::*;
 use output::{OutputMeta, OutputPlugin};
@@ -9,14 +7,6 @@ use types;
 
 #[derive(Debug,Deserialize)]
 pub struct StdoutPlugin {}
-
-fn relative_helper(timestamp: &str) -> Result<String> {
-    let timestamp = timestamp
-        .parse::<chrono::DateTime<chrono::Utc>>()?
-        .with_timezone::<chrono::offset::Local>(&chrono::offset::Local);
-
-    Ok(duration::relative::<chrono::offset::Local>(timestamp, chrono::Local::now()))
-}
 
 impl OutputPlugin for StdoutPlugin {
     fn new(_config: &Option<HashMap<String, String>>) -> Result<Box<OutputPlugin>> {
@@ -38,19 +28,19 @@ impl OutputPlugin for StdoutPlugin {
         println!("\nRecently created: {}", created.len());
         for pr in created {
             println!("[{}] {} -- {} ({})", pr.base.repo.full_name, pr.title,
-                pr.user.login, relative_helper(&pr.created_at)?);
+                pr.user.login, duration::relative_helper(&pr.created_at)?);
         }
 
         println!("\nRecently updated: {}", updated.len());
         for pr in updated {
             println!("[{}] {} -- {} ({})", pr.base.repo.full_name, pr.title,
-                pr.user.login, relative_helper(&pr.updated_at)?);
+                pr.user.login, duration::relative_helper(&pr.updated_at)?);
         };
 
         println!("\nStale: {}", stale.len());
         for pr in stale {
             println!("[{}] {} -- {} ({})", pr.base.repo.full_name, pr.title,
-                pr.user.login, relative_helper(&pr.updated_at)?);
+                pr.user.login, duration::relative_helper(&pr.updated_at)?);
         };
 
         Ok(())

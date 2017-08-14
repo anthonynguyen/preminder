@@ -3,6 +3,7 @@ extern crate clap;
 extern crate config;
 #[macro_use] extern crate error_chain;
 extern crate handlebars;
+extern crate lettre;
 extern crate rayon;
 extern crate regex;
 extern crate reqwest;

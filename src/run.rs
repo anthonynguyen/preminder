@@ -38,8 +38,7 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
         .flat_map(|ve| ve)
         .collect();
 
-    let total_prs = prs.len();
-    println!("Found {} pull requests", total_prs);
+    println!("Found {} pull requests", prs.len());
 
     let mut created_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
             pr.created_at.parse::<chrono::DateTime<chrono::Utc>>()
