@@ -40,6 +40,7 @@ The `stdout` output takes no configuration.
 + `notify` - *optional* whether or not a desktop notification should be
   triggered
 + `template` - *optional* custom Handlebars template to format the message
++ `max_results` - *optional* limit results for each of the three lists
 
 Template variables:
 

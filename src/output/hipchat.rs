@@ -2,6 +2,7 @@ use handlebars;
 use regex;
 use reqwest;
 
+use std::cmp;
 use std::collections::HashMap;
 use std::io::Read;
 
@@ -54,7 +55,8 @@ pub struct HipchatPlugin {
     notify: bool,
     message_colour: String,
     from: String,
-    handlebar: handlebars::Handlebars
+    handlebar: handlebars::Handlebars,
+    max_results: usize
 }
 
 impl OutputPlugin for HipchatPlugin {
@@ -68,6 +70,11 @@ impl OutputPlugin for HipchatPlugin {
             .ok_or("No Hipchat room found")?.to_owned();
         let token = config.remove("token")
             .ok_or("No Hipchat token found")?.to_owned();
+
+        let max_results = config.remove("max_results")
+            .unwrap_or_else(|| "0".to_owned())
+            .parse::<usize>()
+            .chain_err(|| "smtp_port must be an integer!")?;
 
         let from = config.remove("from")
             .unwrap_or_else(|| "Github PR reminder".to_owned());
@@ -92,7 +99,8 @@ impl OutputPlugin for HipchatPlugin {
             notify: notify,
             message_colour: message_colour.to_owned(),
             from: from,
-            handlebar: handlebar
+            handlebar: handlebar,
+            max_results: max_results
         }))
     }
 
@@ -100,10 +108,16 @@ impl OutputPlugin for HipchatPlugin {
     fn remind(&self,
         meta: &OutputMeta,
         total: &[types::PullRequest],
-        created: &[&types::PullRequest],
-        updated: &[&types::PullRequest],
-        stale: &[&types::PullRequest]
+        mut created: &[&types::PullRequest],
+        mut updated: &[&types::PullRequest],
+        mut stale: &[&types::PullRequest]
     ) -> Result<()> {
+        if self.max_results > 0 {
+            created = &created[0..cmp::min(self.max_results, created.len())];
+            updated = &updated[0..cmp::min(self.max_results, updated.len())];
+            stale = &stale[0..cmp::min(self.max_results, stale.len())];
+        }
+
         let info = json!({
             "now": meta.now.format("%B %d, %l:%M%P").to_string(),
             "recent_period": duration::nice(meta.recent),
