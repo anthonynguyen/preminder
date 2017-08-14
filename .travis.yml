@@ -1,6 +1,9 @@
 language: rust
-cache: cargo
 sudo: false
+
+cache:
+ directories:
+  - $HOME/.cargo
 
 rust:
   - stable
