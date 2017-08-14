@@ -12,5 +12,6 @@ error_chain!{
         ParseInt(::std::num::ParseIntError);
         Regex(::regex::Error);
         Reqwest(::reqwest::Error);
+        StringFromUtf8(::std::string::FromUtf8Error);
     }
 }

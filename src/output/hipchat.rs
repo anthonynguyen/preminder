@@ -122,27 +122,30 @@ impl OutputPlugin for HipchatPlugin {
         let message = self.handlebar.render(TEMPLATE_NAME, &info)?;
 
         let re = regex::Regex::new(r"\s+")?;
-        let message = re.replace_all(&message, " ");
-
-        let payload = json!({
-            "from": self.from,
-            "color": self.message_colour,
-            "notify": self.notify,
-            "message_format": "html",
-            "message": message
-        });
+        let message = re.replace_all(&message, " ").to_string();
 
         let client = reqwest::Client::new()?;
-        let mut res = client.post(&self.url)?
-            .header(reqwest::header::ContentType::json())
-            .body(payload.to_string())
-            .send()?;
 
-        let mut content = String::new();
-        res.read_to_string(&mut content)?;
+        for chunk in message.into_bytes().chunks(10000) {
+            let payload = json!({
+                "from": self.from,
+                "color": self.message_colour,
+                "notify": self.notify,
+                "message_format": "html",
+                "message": String::from_utf8(chunk.to_vec())?
+            });
 
-        println!("{:?}", res);
-        println!("{}", content);
+            let mut res = client.post(&self.url)?
+                .header(reqwest::header::ContentType::json())
+                .body(payload.to_string())
+                .send()?;
+
+            let mut content = String::new();
+            res.read_to_string(&mut content)?;
+
+            println!("{:?}", res);
+            println!("{}", content);
+        }
 
         Ok(())
     }
