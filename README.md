@@ -24,7 +24,7 @@ outputs:
 
 ## Outputs
 
-### `stdout`
+### STDOUT
 
 The `stdout` output takes no configuration.
 
@@ -56,6 +56,25 @@ Template variables:
 
 The structure of a PR object, as found in the `opened`, `updated`, or `stale`
 lists can be found in `src/types.rs`.
+
+### Email
+
+`email` output configuration options:
+
++ `smtp_server` - address of the SMTP server to use for sending emails
++ `smtp_port` - *optional* port of the SMTP server (default: `25`)
++ `smtp_username` - *optional* SMTP username
++ `smtp_password` - *optional* SMTP password
++ `from_address` - email address to use in the `from:` field
++ `from_name` - *optional* name to use in the `from:` field
++ `to_address` - email address to send reminder to
++ `subject_template` - *optional* custom Handlebars template to format the
+   email's subject
++ `body_template` - *optional* custom Handlebars template to format the
+   email's body
+
+**Note:** `subject_template` and `body_template` use the same variables as
+described in the Hipchat output.
 
 ## License
 
