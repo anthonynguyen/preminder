@@ -112,6 +112,10 @@ impl OutputPlugin for HipchatPlugin {
         mut updated: &[&types::PullRequest],
         mut stale: &[&types::PullRequest]
     ) -> Result<()> {
+        let num_opened = created.len();
+        let num_updated = updated.len();
+        let num_stale = stale.len();
+
         if self.max_results > 0 {
             created = &created[0..cmp::min(self.max_results, created.len())];
             updated = &updated[0..cmp::min(self.max_results, updated.len())];
@@ -124,9 +128,9 @@ impl OutputPlugin for HipchatPlugin {
             "stale_period": duration::nice(meta.stale),
 
             "num_total": total.len(),
-            "num_opened": created.len(),
-            "num_updated": updated.len(),
-            "num_stale": stale.len(),
+            "num_opened": num_opened,
+            "num_updated": num_updated,
+            "num_stale": num_stale,
 
             "opened": created,
             "updated": updated,
