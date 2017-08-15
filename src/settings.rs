@@ -24,6 +24,7 @@ pub struct GithubSettings {
 #[derive(Debug,Deserialize)]
 pub struct OutputBlock {
     #[serde(rename = "type")] pub _type: String,
+    #[serde(default)] pub disable: bool,
     pub config: Option<HashMap<String, String>>
 }
 

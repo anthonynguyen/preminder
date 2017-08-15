@@ -37,6 +37,10 @@ pub fn init(configured: &[OutputBlock]) -> Result<Vec<Box<OutputPlugin>>> {
     let mut plugins: Vec<Box<OutputPlugin>> = Vec::new();
 
     for output in configured {
+        if output.disable {
+            continue;
+        }
+
         let plugin = match output._type.as_ref() {
             "stdout" => stdout::StdoutPlugin::new(&output.config)?,
             "hipchat" => hipchat::HipchatPlugin::new(&output.config)?,

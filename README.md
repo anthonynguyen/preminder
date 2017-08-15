@@ -20,9 +20,12 @@ stale: 12h
 
 outputs:
   - type: stdout
+    disable: true
 ```
 
 ## Outputs
+
+Every output has an optional `disable` boolean option to disable the output.
 
 ### STDOUT
 
