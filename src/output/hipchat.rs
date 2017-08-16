@@ -161,8 +161,8 @@ impl OutputPlugin for HipchatPlugin {
             let mut content = String::new();
             res.read_to_string(&mut content)?;
 
-            println!("{:?}", res);
-            println!("{}", content);
+            info!("{:?}", res);
+            info!("{}", content);
         }
 
         Ok(())

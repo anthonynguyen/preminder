@@ -6,6 +6,8 @@ extern crate config;
 #[macro_use] extern crate error_chain;
 extern crate handlebars;
 extern crate lettre;
+#[macro_use] extern crate log;
+extern crate loglog;
 extern crate rayon;
 extern crate regex;
 extern crate reqwest;
@@ -36,17 +38,25 @@ fn main() {
             .value_name("FILE"))
         .get_matches();
 
+    loglog::build()
+        .target(true)
+        .init()
+        .unwrap_or_else(|err| {
+            eprintln!("Oh no! The logger couldn't be started!\n{}", err);
+            std::process::exit(1);
+        });
+
     let config_path = matches.value_of("config");
 
     if let Err(ref e) = run::run(config_path) {
-        eprintln!("error: {}", e);
+        error!("FATAL: {}", e);
 
         for e in e.iter().skip(1) {
-            eprintln!("caused by: {}", e);
+            error!("Caused by: {}", e);
         }
 
         if let Some(backtrace) = e.backtrace() {
-            eprintln!("backtrace: {:?}", backtrace);
+            error!("Backtrace: {:?}", backtrace);
         }
 
         std::process::exit(1);

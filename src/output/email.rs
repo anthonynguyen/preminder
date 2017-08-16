@@ -121,7 +121,7 @@ impl OutputPlugin for EmailPlugin {
 
         let result = mailer.send(mail.clone())?;
 
-        println!("{:?}", result);
+        info!("{:?}", result);
 
         mailer.close();
 

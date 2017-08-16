@@ -1,4 +1,8 @@
 error_chain!{
+    links {
+        Loglog(::loglog::Error, ::loglog::ErrorKind);
+    }
+
     foreign_links {
         ChronoParser(::chrono::ParseError);
         Config(::config::ConfigError);

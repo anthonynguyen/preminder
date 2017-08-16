@@ -31,14 +31,14 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
         .flat_map(|ve| ve)
         .collect();
 
-    println!("Found {} repositories", repos.len());
+    info!("Found {} repositories", repos.len());
 
     let prs: Vec<types::PullRequest> = repos.par_iter()
         .flat_map(|repo| api.list_pull_requests(&repo.full_name))
         .flat_map(|ve| ve)
         .collect();
 
-    println!("Found {} pull requests", prs.len());
+    info!("Found {} pull requests", prs.len());
 
     let mut created_prs: Vec<&types::PullRequest> = prs.iter().filter(|pr| {
             pr.created_at.parse::<chrono::DateTime<chrono::Utc>>()
