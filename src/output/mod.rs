@@ -33,25 +33,33 @@ pub trait OutputPlugin {
         -> Result<()>;
 }
 
-pub fn init(configured: &[OutputBlock]) -> Result<Vec<Box<OutputPlugin>>> {
-    let mut plugins: Vec<Box<OutputPlugin>> = Vec::new();
+pub struct OutputSet {
+    pub s: Vec<Box<OutputPlugin>>
+}
 
-    for output in configured {
-        if output.disable {
-            continue;
+impl OutputSet {
+    pub fn new(configured: &[OutputBlock]) -> Result<Self> {
+        let mut plugins: Vec<Box<OutputPlugin>> = Vec::new();
+
+        for output in configured {
+            if output.disable {
+                continue;
+            }
+
+            let plugin = match output._type.as_ref() {
+                "stdout" => stdout::StdoutPlugin::new(&output.config)?,
+                "hipchat" => hipchat::HipchatPlugin::new(&output.config)?,
+                "email" => email::EmailPlugin::new(&output.config)?,
+                _ => return Err(Error::from(format!("Invalid output type: {}", output._type)))
+            };
+
+            plugins.push(plugin);
         }
 
-        let plugin = match output._type.as_ref() {
-            "stdout" => stdout::StdoutPlugin::new(&output.config)?,
-            "hipchat" => hipchat::HipchatPlugin::new(&output.config)?,
-            "email" => email::EmailPlugin::new(&output.config)?,
-            _ => return Err(Error::from(format!("Invalid output type: {}", output._type)))
-        };
-
-        plugins.push(plugin);
+        Ok(OutputSet {
+            s: plugins
+        })
     }
-
-    Ok(plugins)
 }
 
 pub fn handlebars_relative_helper(helper: &handlebars::Helper,

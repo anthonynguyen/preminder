@@ -4,14 +4,14 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use api::Api;
 use duration;
 use errors::*;
-use output;
+use output::{OutputMeta, OutputSet};
 use settings::Settings;
 use types;
 
 pub fn run(config_path: Option<&str>) -> Result<()> {
     let sets = Settings::new(config_path)?;
 
-    let outputs = output::init(&sets.outputs)?;
+    let output_set = OutputSet::new(&sets.outputs)?;
 
     let now = chrono::Utc::now();
 
@@ -58,13 +58,13 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
         }).collect();
     stale_prs.sort_by(|a, b| a.updated_at.cmp(&b.updated_at));;
 
-    let meta = output::OutputMeta {
+    let meta = OutputMeta {
         now: now.with_timezone::<chrono::offset::Local>(&chrono::offset::Local),
         recent: recent,
         stale: stale
     };
 
-    for output in &outputs {
+    for output in &output_set.s {
         output.remind(&meta, &prs, &created_prs, &updated_prs, &stale_prs)?;
     }
 
