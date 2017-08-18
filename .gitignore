@@ -2,4 +2,4 @@
 **/*.rs.bk
 
 sample_responses/*
-config.yml
+config/*

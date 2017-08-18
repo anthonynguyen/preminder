@@ -4,7 +4,7 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use api::Api;
 use duration;
 use errors::*;
-use output::{OutputMeta, OutputSet};
+use output::{OutputData, OutputMeta, OutputSet};
 use settings::Settings;
 use types;
 
@@ -64,9 +64,14 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
         stale: stale
     };
 
-    for output in &output_set.s {
-        output.remind(&meta, &prs, &created_prs, &updated_prs, &stale_prs)?;
-    }
+    let data = OutputData {
+        total: &prs,
+        created: &created_prs,
+        updated: &updated_prs,
+        stale: &stale_prs
+    };
+
+    output_set.remind_all(&meta, &data);
 
     Ok(())
 }

@@ -42,7 +42,7 @@ impl Api {
 
         match res.status() {
             reqwest::StatusCode::Ok => {}
-            _ => return Err(Error::from(format!("Request failed: {:?}", res))),
+            _ => return Err(format!("Request failed: {:?}", res).into()),
         }
 
         Ok(res)

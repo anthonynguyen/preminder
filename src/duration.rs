@@ -13,7 +13,7 @@ pub fn parse(st: &str) -> Result<chrono::Duration> {
         'h' => Ok(chrono::Duration::hours(num as i64)),
         'd' => Ok(chrono::Duration::days(num as i64)),
         'w' => Ok(chrono::Duration::weeks(num as i64)),
-        _ => Err(Error::from("Invalid type for duration"))
+        _ => Err("Invalid type for duration".into())
     }
 }
 

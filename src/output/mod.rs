@@ -20,6 +20,13 @@ pub struct OutputMeta {
     pub stale: chrono::Duration
 }
 
+pub struct OutputData<'a> {
+    pub total: &'a [types::PullRequest],
+    pub created: &'a [&'a types::PullRequest],
+    pub updated: &'a [&'a types::PullRequest],
+    pub stale: &'a [&'a types::PullRequest]
+}
+
 pub trait OutputPlugin {
     fn new(config: &Option<HashMap<String, String>>)
         -> Result<Box<OutputPlugin>> where Self:Sized;
@@ -34,7 +41,7 @@ pub trait OutputPlugin {
 }
 
 pub struct OutputSet {
-    pub s: Vec<Box<OutputPlugin>>
+    plugins: Vec<Box<OutputPlugin>>
 }
 
 impl OutputSet {
@@ -50,15 +57,24 @@ impl OutputSet {
                 "stdout" => stdout::StdoutPlugin::new(&output.config)?,
                 "hipchat" => hipchat::HipchatPlugin::new(&output.config)?,
                 "email" => email::EmailPlugin::new(&output.config)?,
-                _ => return Err(Error::from(format!("Invalid output type: {}", output._type)))
+                _ => return Err(format!("Invalid output type: {}", output._type).into())
             };
 
             plugins.push(plugin);
         }
 
         Ok(OutputSet {
-            s: plugins
+            plugins: plugins
         })
+    }
+
+    pub fn remind_all(&self,
+        meta: &OutputMeta,
+        data: &OutputData) {
+        for plugin in &self.plugins {
+            plugin.remind(meta, data.total, data.created, data.updated, data.stale)
+                .unwrap_or_else(|err| error!("Output : {}", err));
+        }
     }
 }
 
