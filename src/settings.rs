@@ -11,6 +11,7 @@ pub struct Settings {
     pub recent: String,
     pub stale: String,
 
+    pub template: Option<HashMap<String, String>>,
     pub outputs: Vec<OutputBlock>
 }
 

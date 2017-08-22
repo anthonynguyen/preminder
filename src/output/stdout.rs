@@ -1,47 +1,43 @@
 use std::collections::HashMap;
 
+use tera;
+
 use duration;
 use errors::*;
-use output::{OutputMeta, OutputPlugin};
+use output::{OutputData, OutputMeta, OutputPlugin};
 use types;
 
 #[derive(Debug,Deserialize)]
-pub struct StdoutPlugin {}
+pub struct StdoutPlugin {
+    template_name: String
+}
 
 impl OutputPlugin for StdoutPlugin {
-    fn new(_config: &Option<HashMap<String, String>>) -> Result<Box<OutputPlugin>> {
-        Ok(Box::new(StdoutPlugin{}))
+    fn new(config: &Option<HashMap<String, String>>,
+        templates: &Vec<String>) -> Result<Box<OutputPlugin>> {
+        let mut config = config.to_owned()
+            .ok_or("No config specified for Stdout Plugin")?;
+
+        let template_name = config.remove("template")
+            .ok_or("No `template` found")?.to_owned();
+
+        if !templates.contains(&template_name) {
+            return Err(format!("No `{}` template found!", template_name).into())
+        }
+
+        Ok(Box::new(StdoutPlugin {
+            template_name: template_name
+        }))
     }
 
     fn remind(&self,
         _meta: &OutputMeta,
-        total: &[types::PullRequest],
-        created: &[&types::PullRequest],
-        updated: &[&types::PullRequest],
-        stale: &[&types::PullRequest]
+        _data: &OutputData,
+        templated: &HashMap<String, String>
     ) -> Result<()> {
-        println!("\nTotal open pull requests: {}", total.len());
-        println!("Recently opened pull requests: {}", created.len());
-        println!("Recently updated pull requests: {}", updated.len());
-        println!("Stale pull requests: {}", stale.len());
+        info!("hi");
 
-        println!("\nRecently created: {}", created.len());
-        for pr in created {
-            println!("[{}] {} -- {} ({})", pr.base.repo.full_name, pr.title,
-                pr.user.login, duration::relative_helper(&pr.created_at)?);
-        }
-
-        println!("\nRecently updated: {}", updated.len());
-        for pr in updated {
-            println!("[{}] {} -- {} ({})", pr.base.repo.full_name, pr.title,
-                pr.user.login, duration::relative_helper(&pr.updated_at)?);
-        };
-
-        println!("\nStale: {}", stale.len());
-        for pr in stale {
-            println!("[{}] {} -- {} ({})", pr.base.repo.full_name, pr.title,
-                pr.user.login, duration::relative_helper(&pr.updated_at)?);
-        };
+        println!("{}", templated.get(&self.template_name).unwrap());
 
         Ok(())
     }

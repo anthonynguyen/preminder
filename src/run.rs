@@ -11,7 +11,7 @@ use types;
 pub fn run(config_path: Option<&str>) -> Result<()> {
     let sets = Settings::new(config_path)?;
 
-    let output_set = OutputSet::new(&sets.outputs)?;
+    let output_set = OutputSet::new(&sets.outputs, sets.template.clone())?;
 
     let now = chrono::Utc::now();
 
@@ -71,7 +71,7 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
         stale: &stale_prs
     };
 
-    output_set.remind_all(&meta, &data);
+    output_set.remind_all(&meta, &data)?;
 
     Ok(())
 }

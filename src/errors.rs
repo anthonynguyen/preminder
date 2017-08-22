@@ -1,4 +1,8 @@
 error_chain!{
+    links {
+        Tera(::tera::Error, ::tera::ErrorKind);
+    }
+
     foreign_links {
         ChronoParser(::chrono::ParseError);
         Config(::config::ConfigError);
