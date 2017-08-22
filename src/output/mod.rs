@@ -4,7 +4,7 @@ use chrono;
 use tera;
 
 mod email;
-// mod hipchat;
+mod hipchat;
 mod stdout;
 
 use duration;
@@ -66,7 +66,7 @@ impl OutputSet {
 
             let plugin = match output._type.as_ref() {
                 "stdout" => stdout::StdoutPlugin::new(&output.config, &templates)?,
-                // "hipchat" => hipchat::HipchatPlugin::new(&output.config, &templater)?,
+                "hipchat" => hipchat::HipchatPlugin::new(&output.config, &templates)?,
                 "email" => email::EmailPlugin::new(&output.config, &templates)?,
                 _ => return Err(format!("Invalid output type: {}", output._type).into())
             };

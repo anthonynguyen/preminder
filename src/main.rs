@@ -4,7 +4,6 @@ extern crate chrono;
 extern crate clap;
 extern crate config;
 #[macro_use] extern crate error_chain;
-extern crate handlebars;
 extern crate lettre;
 #[macro_use] extern crate log;
 extern crate loglog;

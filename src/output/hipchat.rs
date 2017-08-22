@@ -1,66 +1,24 @@
-use handlebars;
 use regex;
 use reqwest;
 
-use std::cmp;
 use std::collections::HashMap;
 use std::io::Read;
 
-use duration;
 use errors::*;
-use output::{OutputMeta, OutputPlugin, handlebars_relative_helper};
-use types;
-
-const TEMPLATE_NAME: &'static str = "hipchat";
-const DEFAULT_TEMPLATE: &'static str = "Hello everyone!
-    As of <em>{{ now }}</em>, there have been
-    <strong>{{ num_opened }}</strong> pull requests opened, and
-    <strong>{{ num_updated }}</strong> pull requests updated
-    in the last {{ recent_period }}.
-
-    <br /><br />
-
-    <strong>Recently opened pull requests:</strong>
-    <ul>
-        {{ #each opened }}
-            <li>
-                [<strong><a href=\"{{ this.html_url }}\">{{ this.base.repo.full_name }}#{{ this.number }}</a></strong>]
-                {{ this.title }}
-                &bull;
-                <a href=\"{{ this.user.html_url }}\">{{ this.user.login }}</a>
-                &bull;
-                <em>{{ relative this.created_at }}</em>
-            </li>
-        {{ /each }}
-    </ul>
-
-    <br />
-
-    <strong>Recently updated pull requests:</strong>
-    <ul>
-        {{ #each updated }}
-            <li>
-                [<strong><a href=\"{{ this.html_url }}\">{{ this.base.repo.full_name }}#{{ this.number }}</a></strong>]
-                {{ this.title }}
-                &bull;
-                <a href=\"{{ this.user.html_url }}\">{{ this.user.login }}</a>
-                &bull;
-                <em>{{ relative this.updated_at }}</em>
-            </li>
-        {{ /each }}
-    </ul>";
+use output::{OutputData, OutputMeta, OutputPlugin};
 
 pub struct HipchatPlugin {
     url: String,
     notify: bool,
     message_colour: String,
     from: String,
-    handlebar: handlebars::Handlebars,
-    max_results: usize
+    max_results: usize,
+    template_name: String
 }
 
 impl OutputPlugin for HipchatPlugin {
-    fn new(config: &Option<HashMap<String, String>>) -> Result<Box<OutputPlugin>> {
+    fn new(config: &Option<HashMap<String, String>>,
+        templates: &Vec<String>) -> Result<Box<OutputPlugin>> {
         let mut config = config.to_owned()
             .ok_or("No config specified for Hipchat Plugin")?;
 
@@ -84,60 +42,33 @@ impl OutputPlugin for HipchatPlugin {
             .unwrap_or_else(|| "false".to_owned())
             .parse::<bool>()
             .chain_err(|| "Valid values for 'notify' are `true` and `false`")?;
-        let template = config.remove("template")
-            .unwrap_or_else(|| DEFAULT_TEMPLATE.to_owned());
+
+        let template_name = config.remove("template")
+            .ok_or("No `template` found")?.to_owned();
+        if !templates.contains(&template_name) {
+            return Err(format!("No `{}` template found!", template_name).into())
+        }
 
         let url = format!("{}/v2/room/{}/notification?auth_token={}",
             base, room, token);
-
-        let mut handlebar = handlebars::Handlebars::new();
-        handlebar.register_template_string(TEMPLATE_NAME, template)?;
-        handlebar.register_helper("relative", Box::new(handlebars_relative_helper));
 
         Ok(Box::new(HipchatPlugin{
             url: url,
             notify: notify,
             message_colour: message_colour.to_owned(),
             from: from,
-            handlebar: handlebar,
-            max_results: max_results
+            max_results: max_results,
+            template_name: template_name
         }))
     }
 
     // https://www.hipchat.com/docs/apiv2/method/send_room_notification
     fn remind(&self,
-        meta: &OutputMeta,
-        total: &[types::PullRequest],
-        mut created: &[&types::PullRequest],
-        mut updated: &[&types::PullRequest],
-        mut stale: &[&types::PullRequest]
+        _meta: &OutputMeta,
+        _data: &OutputData,
+        templated: &HashMap<String, String>
     ) -> Result<()> {
-        let num_opened = created.len();
-        let num_updated = updated.len();
-        let num_stale = stale.len();
-
-        if self.max_results > 0 {
-            created = &created[0..cmp::min(self.max_results, created.len())];
-            updated = &updated[0..cmp::min(self.max_results, updated.len())];
-            stale = &stale[0..cmp::min(self.max_results, stale.len())];
-        }
-
-        let info = json!({
-            "now": meta.now.format("%B %d, %l:%M%P").to_string(),
-            "recent_period": duration::nice(meta.recent),
-            "stale_period": duration::nice(meta.stale),
-
-            "num_total": total.len(),
-            "num_opened": num_opened,
-            "num_updated": num_updated,
-            "num_stale": num_stale,
-
-            "opened": created,
-            "updated": updated,
-            "stale": stale
-        });
-
-        let message = self.handlebar.render(TEMPLATE_NAME, &info)?;
+        let message = templated.get(&self.template_name).unwrap();
 
         let re = regex::Regex::new(r"\s+")?;
         let message = re.replace_all(&message, " ").to_string();
