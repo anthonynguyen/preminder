@@ -18,7 +18,7 @@ pub struct HipchatPlugin {
 
 impl OutputPlugin for HipchatPlugin {
     fn new(config: &Option<HashMap<String, String>>,
-        templates: &Vec<String>) -> Result<Box<OutputPlugin>> {
+        templates: &[String]) -> Result<Box<OutputPlugin>> {
         let mut config = config.to_owned()
             .ok_or("No config specified for Hipchat Plugin")?;
 
@@ -71,7 +71,7 @@ impl OutputPlugin for HipchatPlugin {
         let message = templated.get(&self.template_name).unwrap();
 
         let re = regex::Regex::new(r"\s+")?;
-        let message = re.replace_all(&message, " ").to_string();
+        let message = re.replace_all(message, " ").to_string();
 
         let client = reqwest::Client::new()?;
 

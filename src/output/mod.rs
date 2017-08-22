@@ -27,7 +27,7 @@ pub struct OutputData<'a> {
 }
 
 pub trait OutputPlugin {
-    fn new(config: &Option<HashMap<String, String>>, templates: &Vec<String>)
+    fn new(config: &Option<HashMap<String, String>>, templates: &[String])
         -> Result<Box<OutputPlugin>> where Self:Sized;
 
     fn remind(&self,

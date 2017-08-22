@@ -10,7 +10,7 @@ pub struct StdoutPlugin {
 
 impl OutputPlugin for StdoutPlugin {
     fn new(config: &Option<HashMap<String, String>>,
-        templates: &Vec<String>) -> Result<Box<OutputPlugin>> {
+        templates: &[String]) -> Result<Box<OutputPlugin>> {
         let mut config = config.to_owned()
             .ok_or("No config specified for Stdout Plugin")?;
 

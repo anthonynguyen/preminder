@@ -25,7 +25,7 @@ pub struct EmailPlugin {
 
 impl OutputPlugin for EmailPlugin {
     fn new(config: &Option<HashMap<String, String>>,
-        templates: &Vec<String>) -> Result<Box<OutputPlugin>> {
+        templates: &[String]) -> Result<Box<OutputPlugin>> {
         let mut config = config.to_owned()
             .ok_or("No config specified for Email plugin!")?;
 
