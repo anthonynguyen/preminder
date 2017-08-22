@@ -1,21 +1,12 @@
 use std::collections::HashMap;
 
-use handlebars;
 use lettre::email::EmailBuilder;
 use lettre::transport::smtp::{SecurityLevel, SmtpTransportBuilder};
 use lettre::transport::smtp::authentication::Mechanism;
 use lettre::transport::EmailTransport;
 
-use duration;
 use errors::*;
-use output::{OutputMeta, OutputPlugin, handlebars_relative_helper};
-use types;
-
-const SUBJECT_TEMPLATE_NAME: &'static str = "subject";
-const BODY_TEMPLATE_NAME: &'static str = "body";
-
-const DEFAULT_SUBJECT_TEMPLATE: &'static str = "PR REMINDER";
-const DEFAULT_BODY_TEMPLATE: &'static str = "Hello everyone!";
+use output::{OutputData, OutputMeta, OutputPlugin};
 
 pub struct EmailPlugin {
     smtp_server: String,
@@ -28,11 +19,13 @@ pub struct EmailPlugin {
 
     to_address: String,
 
-    handlebar: handlebars::Handlebars
+    subject_template_name: String,
+    body_template_name: String
 }
 
 impl OutputPlugin for EmailPlugin {
-    fn new(config: &Option<HashMap<String, String>>) -> Result<Box<OutputPlugin>> {
+    fn new(config: &Option<HashMap<String, String>>,
+        templates: &Vec<String>) -> Result<Box<OutputPlugin>> {
         let mut config = config.to_owned()
             .ok_or("No config specified for Email plugin!")?;
 
@@ -55,15 +48,17 @@ impl OutputPlugin for EmailPlugin {
         let to_address = config.remove("to_address")
             .ok_or("No TO address found")?.to_owned();
 
-        let subject_template = config.remove("subject_template")
-            .unwrap_or_else(|| DEFAULT_SUBJECT_TEMPLATE.to_owned());
-        let body_template = config.remove("body_template")
-            .unwrap_or_else(|| DEFAULT_BODY_TEMPLATE.to_owned());
+        let subject_template_name = config.remove("subject_template")
+            .ok_or("No `subject_template` found")?.to_owned();
+        if !templates.contains(&subject_template_name) {
+            return Err(format!("No `{}` template found!", subject_template_name).into())
+        }
 
-        let mut handlebar = handlebars::Handlebars::new();
-        handlebar.register_template_string(SUBJECT_TEMPLATE_NAME, subject_template)?;
-        handlebar.register_template_string(BODY_TEMPLATE_NAME, body_template)?;
-        handlebar.register_helper("relative", Box::new(handlebars_relative_helper));
+        let body_template_name = config.remove("body_template")
+            .ok_or("No `body_template` found")?.to_owned();
+        if !templates.contains(&body_template_name) {
+            return Err(format!("No `{}` template found!", body_template_name).into())
+        }
 
         Ok(Box::new(EmailPlugin{
             smtp_server: smtp_server,
@@ -76,34 +71,18 @@ impl OutputPlugin for EmailPlugin {
 
             to_address: to_address,
 
-            handlebar: handlebar
+            subject_template_name: subject_template_name,
+            body_template_name: body_template_name
         }))
     }
 
     fn remind(&self,
-        meta: &OutputMeta,
-        total: &[types::PullRequest],
-        created: &[&types::PullRequest],
-        updated: &[&types::PullRequest],
-        stale: &[&types::PullRequest]
+        _meta: &OutputMeta,
+        _data: &OutputData,
+        templated: &HashMap<String, String>
     ) -> Result<()> {
-        let info = json!({
-            "now": meta.now.format("%B %d, %l:%M%P").to_string(),
-            "recent_period": duration::nice(meta.recent),
-            "stale_period": duration::nice(meta.stale),
-
-            "num_total": total.len(),
-            "num_opened": created.len(),
-            "num_updated": updated.len(),
-            "num_stale": stale.len(),
-
-            "opened": created,
-            "updated": updated,
-            "stale": stale
-        });
-
-        let subject = self.handlebar.render(SUBJECT_TEMPLATE_NAME, &info)?;
-        let body = self.handlebar.render(BODY_TEMPLATE_NAME, &info)?;
+        let subject = templated.get(&self.subject_template_name).unwrap();
+        let body = templated.get(&self.body_template_name).unwrap();
 
         let mail = EmailBuilder::new()
             .from((self.from_address.as_ref(), self.from_name.as_ref()))

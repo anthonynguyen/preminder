@@ -1,11 +1,9 @@
-use std;
 use std::collections::HashMap;
 
 use chrono;
-use handlebars;
 use tera;
 
-// mod email;
+mod email;
 // mod hipchat;
 mod stdout;
 
@@ -69,7 +67,7 @@ impl OutputSet {
             let plugin = match output._type.as_ref() {
                 "stdout" => stdout::StdoutPlugin::new(&output.config, &templates)?,
                 // "hipchat" => hipchat::HipchatPlugin::new(&output.config, &templater)?,
-                // "email" => email::EmailPlugin::new(&output.config, &templater)?,
+                "email" => email::EmailPlugin::new(&output.config, &templates)?,
                 _ => return Err(format!("Invalid output type: {}", output._type).into())
             };
 
@@ -112,24 +110,4 @@ impl OutputSet {
 
         Ok(())
     }
-}
-
-pub fn handlebars_relative_helper(helper: &handlebars::Helper,
-    _: &handlebars::Handlebars,
-    rc: &mut handlebars::RenderContext
-    ) -> std::result::Result<(), handlebars::RenderError> {
-    let param = helper.param(0)
-        .ok_or_else(|| handlebars::RenderError::new("No param given?"))?
-        .value()
-        .as_str()
-        .ok_or_else(|| handlebars::RenderError::new("Param is not a string"))?
-        .parse::<chrono::DateTime<chrono::Utc>>()
-        .map_err(|_| handlebars::RenderError::new("Param could not be parsed as a datetime"))?
-        .with_timezone::<chrono::offset::Local>(&chrono::offset::Local);
-
-    let now = chrono::Local::now();
-    let fin = duration::relative::<chrono::offset::Local>(param, now);
-
-    rc.writer.write_all(&fin.into_bytes())?;
-    Ok(())
 }

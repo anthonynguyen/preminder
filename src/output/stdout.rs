@@ -1,11 +1,7 @@
 use std::collections::HashMap;
 
-use tera;
-
-use duration;
 use errors::*;
 use output::{OutputData, OutputMeta, OutputPlugin};
-use types;
 
 #[derive(Debug,Deserialize)]
 pub struct StdoutPlugin {
