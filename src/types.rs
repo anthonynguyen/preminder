@@ -1,3 +1,5 @@
+use chrono;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct User {
     pub login: String,
@@ -22,8 +24,8 @@ pub struct PullRequest {
     pub state: String,
     pub title: String,
     pub user: User,
-    pub created_at: String,
-    pub updated_at: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
     pub closed_at: Option<String>,
 
     pub base: Branch,

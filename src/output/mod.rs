@@ -92,7 +92,7 @@ impl OutputSet {
 
     pub fn remind_all(&self, meta: &OutputMeta, data: &OutputData) -> Result<()> {
         let info = json!({
-            "now": meta.now.format("%B %d, %l:%M%P").to_string(),
+            "now": meta.now,
             "recent_period": duration::nice(meta.recent),
             "stale_period": duration::nice(meta.stale),
 

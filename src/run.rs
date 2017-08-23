@@ -41,32 +41,17 @@ pub fn run(config_path: Option<&str>) -> Result<()> {
     info!("Found {} pull requests", prs.len());
 
     let mut created_prs: Vec<&types::PullRequest> = prs.iter()
-        .filter(|pr| {
-            pr.created_at
-                .parse::<chrono::DateTime<chrono::Utc>>()
-                .map(|dt| dt >= recent_earliest)
-                .unwrap_or(false)
-        })
+        .filter(|pr| { pr.created_at >= recent_earliest })
         .collect();
     created_prs.sort_by(|a, b| b.created_at.cmp(&a.created_at));
 
     let mut updated_prs: Vec<&types::PullRequest> = prs.iter()
-        .filter(|pr| {
-            pr.updated_at
-                .parse::<chrono::DateTime<chrono::Utc>>()
-                .map(|dt| dt >= recent_earliest)
-                .unwrap_or(false)
-        })
+        .filter(|pr| { pr.updated_at >= recent_earliest })
         .collect();
     updated_prs.sort_by(|a, b| b.updated_at.cmp(&a.updated_at));
 
     let mut stale_prs: Vec<&types::PullRequest> = prs.iter()
-        .filter(|pr| {
-            pr.updated_at
-                .parse::<chrono::DateTime<chrono::Utc>>()
-                .map(|dt| dt <= stale_latest)
-                .unwrap_or(false)
-        })
+        .filter(|pr| { pr.updated_at <= stale_latest })
         .collect();
     stale_prs.sort_by(|a, b| a.updated_at.cmp(&b.updated_at));;
 
