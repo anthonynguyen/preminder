@@ -3,38 +3,27 @@ use std::collections::HashMap;
 use errors::*;
 use output::{OutputData, OutputMeta, OutputPlugin};
 
-#[derive(Debug,Deserialize)]
-pub struct StdoutPlugin {
-    template_name: String
+#[derive(Clone,Debug,Deserialize)]
+pub struct Config {
+    template: String
 }
 
-impl OutputPlugin for StdoutPlugin {
-    fn new(config: &Option<HashMap<String, String>>,
-        templates: &[String]) -> Result<Box<OutputPlugin>> {
-        let mut config = config.to_owned()
-            .ok_or("No config specified for Stdout Plugin")?;
+#[derive(Debug,Deserialize)]
+pub struct Plugin {
+    config: Config
+}
 
-        let template_name = config.remove("template")
-            .ok_or("No `template` found")?.to_owned();
-
-        if !templates.contains(&template_name) {
-            return Err(format!("No `{}` template found!", template_name).into())
-        }
-
-        Ok(Box::new(StdoutPlugin {
-            template_name: template_name
-        }))
-    }
-
+impl OutputPlugin for Plugin {
     fn remind(&self,
         _meta: &OutputMeta,
         _data: &OutputData,
         templated: &HashMap<String, String>
     ) -> Result<()> {
-        info!("hi");
-
-        println!("{}", templated.get(&self.template_name).unwrap());
-
+        println!("{}", templated.get(&self.config.template).unwrap());
         Ok(())
     }
+}
+
+pub fn new(config: &Config) -> Box<OutputPlugin> {
+    Box::new(Plugin { config: config.clone() })
 }

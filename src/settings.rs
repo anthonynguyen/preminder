@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use config;
+use output;
 
 use errors::*;
 
@@ -12,7 +13,7 @@ pub struct Settings {
     pub stale: String,
 
     pub template: Option<HashMap<String, String>>,
-    pub outputs: Vec<OutputBlock>
+    pub outputs: Vec<output::OutputBlock>
 }
 
 #[derive(Debug,Deserialize)]
@@ -20,13 +21,6 @@ pub struct GithubSettings {
     pub token: String,
     pub host: Option<String>,
     pub subjects: Vec<String>
-}
-
-#[derive(Debug,Deserialize)]
-pub struct OutputBlock {
-    #[serde(rename = "type")] pub _type: String,
-    #[serde(default)] pub disable: bool,
-    pub config: Option<HashMap<String, String>>
 }
 
 impl Settings {

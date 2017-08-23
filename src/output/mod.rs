@@ -9,8 +9,16 @@ mod stdout;
 
 use duration;
 use errors::*;
-use settings::OutputBlock;
 use types;
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "lowercase")]
+#[serde(tag = "type")]
+pub enum OutputBlock {
+    Stdout(stdout::Config),
+    Hipchat(hipchat::Config),
+    Email(email::Config),
+}
 
 #[derive(Debug)]
 pub struct OutputMeta {
@@ -27,9 +35,6 @@ pub struct OutputData<'a> {
 }
 
 pub trait OutputPlugin {
-    fn new(config: &Option<HashMap<String, String>>, templates: &[String])
-        -> Result<Box<OutputPlugin>> where Self:Sized;
-
     fn remind(&self,
         meta: &OutputMeta,
         data: &OutputData,
@@ -60,15 +65,10 @@ impl OutputSet {
         }
 
         for output in configured {
-            if output.disable {
-                continue;
-            }
-
-            let plugin = match output._type.as_ref() {
-                "stdout" => stdout::StdoutPlugin::new(&output.config, &templates)?,
-                "hipchat" => hipchat::HipchatPlugin::new(&output.config, &templates)?,
-                "email" => email::EmailPlugin::new(&output.config, &templates)?,
-                _ => return Err(format!("Invalid output type: {}", output._type).into())
+            let plugin = match *output {
+                OutputBlock::Stdout(ref cfg) => stdout::new(cfg),
+                OutputBlock::Hipchat(ref cfg) => hipchat::new(cfg),
+                OutputBlock::Email(ref cfg) => email::new(cfg),
             };
 
             plugins.push(plugin);

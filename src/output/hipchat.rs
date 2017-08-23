@@ -7,68 +7,36 @@ use std::io::Read;
 use errors::*;
 use output::{OutputData, OutputMeta, OutputPlugin};
 
-pub struct HipchatPlugin {
+#[derive(Clone,Debug,Deserialize)]
+pub struct Config {
     url: String,
-    notify: bool,
-    message_colour: String,
+    room: u16,
+    token: String,
     from: String,
-    max_results: usize,
-    template_name: String
+
+    #[serde(default)] notify: bool,
+    #[serde(default = "default_colour")] colour: String,
+
+    template: String
 }
 
-impl OutputPlugin for HipchatPlugin {
-    fn new(config: &Option<HashMap<String, String>>,
-        templates: &[String]) -> Result<Box<OutputPlugin>> {
-        let mut config = config.to_owned()
-            .ok_or("No config specified for Hipchat Plugin")?;
+fn default_colour() -> String {
+    "yellow".to_string()
+}
 
-        let base = config.remove("url")
-            .ok_or("No Hipchat URL found")?.to_owned();
-        let room = config.remove("room")
-            .ok_or("No Hipchat room found")?.to_owned();
-        let token = config.remove("token")
-            .ok_or("No Hipchat token found")?.to_owned();
+pub struct Plugin {
+    full_url: String,
+    config: Config
+}
 
-        let max_results = config.remove("max_results")
-            .unwrap_or_else(|| "0".to_owned())
-            .parse::<usize>()
-            .chain_err(|| "smtp_port must be an integer!")?;
-
-        let from = config.remove("from")
-            .unwrap_or_else(|| "Github PR reminder".to_owned());
-        let message_colour = config.remove("colour")
-            .unwrap_or_else(|| "yellow".to_owned());
-        let notify = config.remove("notify")
-            .unwrap_or_else(|| "false".to_owned())
-            .parse::<bool>()
-            .chain_err(|| "Valid values for 'notify' are `true` and `false`")?;
-
-        let template_name = config.remove("template")
-            .ok_or("No `template` found")?.to_owned();
-        if !templates.contains(&template_name) {
-            return Err(format!("No `{}` template found!", template_name).into())
-        }
-
-        let url = format!("{}/v2/room/{}/notification?auth_token={}",
-            base, room, token);
-
-        Ok(Box::new(HipchatPlugin{
-            url: url,
-            notify: notify,
-            message_colour: message_colour.to_owned(),
-            from: from,
-            max_results: max_results,
-            template_name: template_name
-        }))
-    }
-
+impl OutputPlugin for Plugin {
     // https://www.hipchat.com/docs/apiv2/method/send_room_notification
     fn remind(&self,
         _meta: &OutputMeta,
         _data: &OutputData,
         templated: &HashMap<String, String>
     ) -> Result<()> {
-        let message = templated.get(&self.template_name).unwrap();
+        let message = templated.get(&self.config.template).unwrap();
 
         let re = regex::Regex::new(r"\s+")?;
         let message = re.replace_all(message, " ").to_string();
@@ -77,14 +45,14 @@ impl OutputPlugin for HipchatPlugin {
 
         for chunk in message.into_bytes().chunks(10_000) {
             let payload = json!({
-                "from": self.from,
-                "color": self.message_colour,
-                "notify": self.notify,
+                "from": self.config.from,
+                "color": self.config.colour,
+                "notify": self.config.notify,
                 "message_format": "html",
                 "message": String::from_utf8(chunk.to_vec())?
             });
 
-            let mut res = client.post(&self.url)?
+            let mut res = client.post(&self.full_url)?
                 .header(reqwest::header::ContentType::json())
                 .body(payload.to_string())
                 .send()?;
@@ -98,4 +66,14 @@ impl OutputPlugin for HipchatPlugin {
 
         Ok(())
     }
+}
+
+pub fn new(config: &Config) -> Box<OutputPlugin> {
+    let full_url = format!("{}/v2/room/{}/notification?auth_token={}",
+        config.url, config.room, config.token);
+
+    Box::new(Plugin {
+        config: config.clone(),
+        full_url
+    })
 }
