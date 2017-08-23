@@ -36,7 +36,7 @@ impl OutputPlugin for Plugin {
 }
 
 impl Plugin {
-    pub fn new(config: &Config) -> Result<Box<OutputPlugin>> {
+    pub fn init(config: &Config) -> Result<Box<OutputPlugin>> {
         Ok(Box::new(Plugin { config: config.clone() }))
     }
 }

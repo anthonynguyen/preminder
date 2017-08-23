@@ -83,7 +83,7 @@ impl OutputPlugin for Plugin {
 }
 
 impl Plugin {
-    pub fn new(config: &Config) -> Result<Box<OutputPlugin>> {
+    pub fn init(config: &Config) -> Result<Box<OutputPlugin>> {
         let full_url = format!("{}/v2/room/{}/notification?auth_token={}",
             config.url, config.room, config.token);
 

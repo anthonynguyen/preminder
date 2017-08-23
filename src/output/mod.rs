@@ -74,9 +74,9 @@ impl OutputSet {
 
         for output in configured {
             let plugin = match *output {
-                OutputBlock::Stdout(ref cfg) => stdout::Plugin::new(cfg)?,
-                OutputBlock::Hipchat(ref cfg) => hipchat::Plugin::new(cfg)?,
-                OutputBlock::Email(ref cfg) => email::Plugin::new(cfg)?,
+                OutputBlock::Stdout(ref cfg) => stdout::Plugin::init(cfg)?,
+                OutputBlock::Hipchat(ref cfg) => hipchat::Plugin::init(cfg)?,
+                OutputBlock::Email(ref cfg) => email::Plugin::init(cfg)?,
             };
 
             plugin.check_templates(&templates)?;
