@@ -7,17 +7,19 @@ use std::io::Read;
 use errors::*;
 use output::{OutputData, OutputMeta, OutputPlugin};
 
-#[derive(Clone,Debug,Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Config {
     url: String,
     room: u16,
     token: String,
     from: String,
 
-    #[serde(default)] notify: bool,
-    #[serde(default = "default_colour")] colour: String,
+    #[serde(default)]
+    notify: bool,
+    #[serde(default = "default_colour")]
+    colour: String,
 
-    template: String
+    template: String,
 }
 
 fn default_colour() -> String {
@@ -26,23 +28,26 @@ fn default_colour() -> String {
 
 pub struct Plugin {
     full_url: String,
-    config: Config
+    config: Config,
 }
 
 impl OutputPlugin for Plugin {
     fn check_templates(&self, templates: &[String]) -> Result<()> {
         if !templates.contains(&self.config.template) {
-            return Err(format!("Hipchat template missing: {}", self.config.template).into());
+            return Err(
+                format!("Hipchat template missing: {}", self.config.template).into(),
+            );
         }
 
         Ok(())
     }
 
     // https://www.hipchat.com/docs/apiv2/method/send_room_notification
-    fn remind(&self,
+    fn remind(
+        &self,
         _meta: &OutputMeta,
         _data: &OutputData,
-        templated: &HashMap<String, String>
+        templated: &HashMap<String, String>,
     ) -> Result<()> {
         let message = templated.get(&self.config.template).unwrap();
 
@@ -60,7 +65,8 @@ impl OutputPlugin for Plugin {
                 "message": String::from_utf8(chunk.to_vec())?
             });
 
-            let mut res = client.post(&self.full_url)?
+            let mut res = client
+                .post(&self.full_url)?
                 .header(reqwest::header::ContentType::json())
                 .body(payload.to_string())
                 .send()?;
@@ -83,8 +89,7 @@ impl Plugin {
 
         Ok(Box::new(Plugin {
             config: config.clone(),
-            full_url
+            full_url,
         }))
     }
 }
-

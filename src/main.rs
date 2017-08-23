@@ -3,16 +3,20 @@
 extern crate chrono;
 extern crate clap;
 extern crate config;
-#[macro_use] extern crate error_chain;
+#[macro_use]
+extern crate error_chain;
 extern crate lettre;
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 extern crate loglog;
 extern crate rayon;
 extern crate regex;
 extern crate reqwest;
 extern crate serde;
-#[macro_use] extern crate serde_derive;
-#[macro_use] extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
+#[macro_use]
+extern crate serde_json;
 extern crate tera;
 
 mod api;
@@ -30,21 +34,20 @@ fn main() {
     let matches = clap::App::new("preminder")
         .version(VERSION)
         .author(AUTHORS)
-        .arg(clap::Arg::with_name("config")
-            .help("Path to config file")
-            .short("c")
-            .long("config")
-            .takes_value(true)
-            .value_name("FILE"))
+        .arg(
+            clap::Arg::with_name("config")
+                .help("Path to config file")
+                .short("c")
+                .long("config")
+                .takes_value(true)
+                .value_name("FILE"),
+        )
         .get_matches();
 
-    loglog::build()
-        .target(true)
-        .init()
-        .unwrap_or_else(|err| {
-            eprintln!("Oh no! The logger couldn't be started!\n{}", err);
-            std::process::exit(1);
-        });
+    loglog::build().target(true).init().unwrap_or_else(|err| {
+        eprintln!("Oh no! The logger couldn't be started!\n{}", err);
+        std::process::exit(1);
+    });
 
     let config_path = matches.value_of("config");
 

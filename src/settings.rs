@@ -5,7 +5,7 @@ use output;
 
 use errors::*;
 
-#[derive(Debug,Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Settings {
     pub github: GithubSettings,
 
@@ -13,14 +13,14 @@ pub struct Settings {
     pub stale: String,
 
     pub template: Option<HashMap<String, String>>,
-    pub outputs: Vec<output::OutputBlock>
+    pub outputs: Vec<output::OutputBlock>,
 }
 
-#[derive(Debug,Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct GithubSettings {
     pub token: String,
     pub host: Option<String>,
-    pub subjects: Vec<String>
+    pub subjects: Vec<String>,
 }
 
 impl Settings {
@@ -32,6 +32,8 @@ impl Settings {
             settings.merge(config::File::with_name(path))?;
         }
 
-        settings.try_into().chain_err(|| "Could not load configuration!")
+        settings.try_into().chain_err(
+            || "Could not load configuration!",
+        )
     }
 }

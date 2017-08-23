@@ -13,7 +13,7 @@ pub fn parse(st: &str) -> Result<chrono::Duration> {
         'h' => Ok(chrono::Duration::hours(num as i64)),
         'd' => Ok(chrono::Duration::days(num as i64)),
         'w' => Ok(chrono::Duration::weeks(num as i64)),
-        _ => Err("Invalid type for duration".into())
+        _ => Err("Invalid type for duration".into()),
     }
 }
 
@@ -35,12 +35,13 @@ fn plural(num: i64) -> String {
 
 pub fn nice(dura: chrono::Duration) -> String {
     type DurationConstructor = fn(i64) -> chrono::Duration;
-    let periods: Vec<(i64, &str, DurationConstructor)> = vec![
-        (dura.num_weeks(), "week", chrono::Duration::weeks),
-        (dura.num_days(), "day", chrono::Duration::days),
-        (dura.num_hours(), "hour", chrono::Duration::hours),
-        (dura.num_minutes(), "minute", chrono::Duration::minutes)
-    ];
+    let periods: Vec<(i64, &str, DurationConstructor)> =
+        vec![
+            (dura.num_weeks(), "week", chrono::Duration::weeks),
+            (dura.num_days(), "day", chrono::Duration::days),
+            (dura.num_hours(), "hour", chrono::Duration::hours),
+            (dura.num_minutes(), "minute", chrono::Duration::minutes),
+        ];
 
     let mut skip = true;
 
@@ -59,7 +60,10 @@ pub fn nice(dura: chrono::Duration) -> String {
     format!("{} second{}", seconds, plural(seconds))
 }
 
-pub fn relative<T: chrono::TimeZone>(before: chrono::DateTime<T>, after: chrono::DateTime<T>) -> String {
+pub fn relative<T: chrono::TimeZone>(
+    before: chrono::DateTime<T>,
+    after: chrono::DateTime<T>,
+) -> String {
     let diff = after.signed_duration_since::<T>(before);
     format!("{} ago", nice(diff))
 }
@@ -69,5 +73,8 @@ pub fn relative_helper(timestamp: &str) -> Result<String> {
         .parse::<chrono::DateTime<chrono::Utc>>()?
         .with_timezone::<chrono::offset::Local>(&chrono::offset::Local);
 
-    Ok(relative::<chrono::offset::Local>(timestamp, chrono::Local::now()))
+    Ok(relative::<chrono::offset::Local>(
+        timestamp,
+        chrono::Local::now(),
+    ))
 }
