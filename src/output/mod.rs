@@ -96,11 +96,7 @@ impl OutputSet {
             "recent_period": duration::nice(meta.recent),
             "stale_period": duration::nice(meta.stale),
 
-            "num_total": data.total.len(),
-            "num_opened": data.created.len(),
-            "num_updated": data.updated.len(),
-            "num_stale": data.stale.len(),
-
+            "total": data.total,
             "opened": data.created,
             "updated": data.updated,
             "stale": data.stale
