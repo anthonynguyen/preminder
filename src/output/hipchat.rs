@@ -30,6 +30,14 @@ pub struct Plugin {
 }
 
 impl OutputPlugin for Plugin {
+    fn check_templates(&self, templates: &[String]) -> Result<()> {
+        if !templates.contains(&self.config.template) {
+            return Err(format!("Hipchat template missing: {}", self.config.template).into());
+        }
+
+        Ok(())
+    }
+
     // https://www.hipchat.com/docs/apiv2/method/send_room_notification
     fn remind(&self,
         _meta: &OutputMeta,
@@ -68,12 +76,15 @@ impl OutputPlugin for Plugin {
     }
 }
 
-pub fn new(config: &Config) -> Box<OutputPlugin> {
-    let full_url = format!("{}/v2/room/{}/notification?auth_token={}",
-        config.url, config.room, config.token);
+impl Plugin {
+    pub fn new(config: &Config) -> Result<Box<OutputPlugin>> {
+        let full_url = format!("{}/v2/room/{}/notification?auth_token={}",
+            config.url, config.room, config.token);
 
-    Box::new(Plugin {
-        config: config.clone(),
-        full_url
-    })
+        Ok(Box::new(Plugin {
+            config: config.clone(),
+            full_url
+        }))
+    }
 }
+

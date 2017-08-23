@@ -14,6 +14,14 @@ pub struct Plugin {
 }
 
 impl OutputPlugin for Plugin {
+    fn check_templates(&self, templates: &[String]) -> Result<()> {
+        if !templates.contains(&self.config.template) {
+            return Err(format!("Stdout template missing: {}", self.config.template).into());
+        }
+
+        Ok(())
+    }
+
     fn remind(&self,
         _meta: &OutputMeta,
         _data: &OutputData,
@@ -24,6 +32,9 @@ impl OutputPlugin for Plugin {
     }
 }
 
-pub fn new(config: &Config) -> Box<OutputPlugin> {
-    Box::new(Plugin { config: config.clone() })
+impl Plugin {
+    pub fn new(config: &Config) -> Result<Box<OutputPlugin>> {
+        Ok(Box::new(Plugin { config: config.clone() }))
+    }
 }
+

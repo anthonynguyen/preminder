@@ -35,6 +35,8 @@ pub struct OutputData<'a> {
 }
 
 pub trait OutputPlugin {
+    fn check_templates(&self, templates: &[String]) -> Result<()>;
+
     fn remind(&self,
         meta: &OutputMeta,
         data: &OutputData,
@@ -66,11 +68,12 @@ impl OutputSet {
 
         for output in configured {
             let plugin = match *output {
-                OutputBlock::Stdout(ref cfg) => stdout::new(cfg),
-                OutputBlock::Hipchat(ref cfg) => hipchat::new(cfg),
-                OutputBlock::Email(ref cfg) => email::new(cfg),
+                OutputBlock::Stdout(ref cfg) => stdout::Plugin::new(cfg)?,
+                OutputBlock::Hipchat(ref cfg) => hipchat::Plugin::new(cfg)?,
+                OutputBlock::Email(ref cfg) => email::Plugin::new(cfg)?
             };
 
+            plugin.check_templates(&templates)?;
             plugins.push(plugin);
         }
 
