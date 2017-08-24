@@ -7,6 +7,8 @@ mod email;
 mod hipchat;
 mod stdout;
 
+mod template_filters;
+
 use duration;
 use errors::*;
 use types;
@@ -59,6 +61,8 @@ impl OutputSet {
         let mut plugins: Vec<Box<OutputPlugin>> = Vec::new();
 
         let mut templater = tera::Tera::default();
+        templater.register_filter("relative", template_filters::relative);
+
         let mut templates = Vec::new();
         if let Some(hmap) = ctemplates {
             let template_tuples: Vec<(&str, &str)> = hmap.iter()

@@ -67,14 +67,3 @@ pub fn relative<T: chrono::TimeZone>(
     let diff = after.signed_duration_since::<T>(before);
     format!("{} ago", nice(diff))
 }
-
-pub fn relative_helper(timestamp: &str) -> Result<String> {
-    let timestamp = timestamp
-        .parse::<chrono::DateTime<chrono::Utc>>()?
-        .with_timezone::<chrono::offset::Local>(&chrono::offset::Local);
-
-    Ok(relative::<chrono::offset::Local>(
-        timestamp,
-        chrono::Local::now(),
-    ))
-}
