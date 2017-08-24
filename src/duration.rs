@@ -47,7 +47,7 @@ pub fn nice(dura: chrono::Duration) -> String {
 
     for p in &periods {
         if p.0 > 0 {
-            if skip {
+            if skip && p.0 < 5 {
                 skip = false;
                 continue;
             }
