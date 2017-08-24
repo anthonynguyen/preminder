@@ -16,9 +16,7 @@ pub struct Plugin {
 impl OutputPlugin for Plugin {
     fn check_templates(&self, templates: &[String]) -> Result<()> {
         if !templates.contains(&self.config.template) {
-            return Err(
-                format!("Stdout template missing: {}", self.config.template).into(),
-            );
+            bail!("Stdout template missing: {}", self.config.template);
         }
 
         Ok(())

@@ -52,7 +52,7 @@ fn main() {
     let config_path = matches.value_of("config");
 
     if let Err(ref e) = run::run(config_path) {
-        error!("FATAL: {}", e);
+        error!("{}", e);
 
         for e in e.iter().skip(1) {
             error!("Caused by: {}", e);

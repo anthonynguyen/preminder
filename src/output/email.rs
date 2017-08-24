@@ -46,18 +46,14 @@ pub struct Plugin {
 impl OutputPlugin for Plugin {
     fn check_templates(&self, templates: &[String]) -> Result<()> {
         if !templates.contains(&self.config.subject_template) {
-            return Err(
-                format!(
-                    "Email subject_template missing: {}",
-                    self.config.subject_template
-                ).into(),
+            bail!(
+                "Email subject_template missing: {}",
+                self.config.subject_template
             );
         }
 
         if !templates.contains(&self.config.body_template) {
-            return Err(
-                format!("Email body_template missing: {}", self.config.body_template).into(),
-            );
+            bail!("Email body_template missing: {}", self.config.body_template);
         }
 
         Ok(())

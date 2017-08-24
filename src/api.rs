@@ -42,8 +42,8 @@ impl Api {
             .send()?;
 
         match res.status() {
-            reqwest::StatusCode::Ok => {}
-            _ => return Err(format!("Request failed: {:?}", res).into()),
+            reqwest::StatusCode::Ok => (),
+            _ => bail!("Request failed: {:?}", res),
         }
 
         Ok(res)
